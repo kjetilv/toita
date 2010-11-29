@@ -1,0 +1,17 @@
+A playground project with many things going for it:
+
+ - Scala-based
+ - Lift-based!
+ - Comet-based!!
+ - Does Twitter, with JSON, User Streams and OAUTH!
+
+Some things it don't got going for it:
+
+ - Totally a playground project with no production-like qualities whatsoever
+
+Use at your own risk, and against my advice.
+
+Oh, and you need an OAUTH key and secret to even do anything.  I didn't check
+those in.
+
+Kjetil
