@@ -16,12 +16,14 @@ import vkode.toita.model._
  * to modify lift's environment
  */
 class Boot {
+
   def boot {
     LiftRules.addToPackages("vkode.toita")
 
     // Build SiteMap
     def sitemap() = SiteMap(
       Menu("Home") / "index" :: // Simple menu form
+      Menu("Me") / "me" :: // Simple menu form
         Nil :_*)
 
     LiftRules.setSiteMapFunc(sitemap)

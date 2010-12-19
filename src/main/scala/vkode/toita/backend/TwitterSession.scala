@@ -6,17 +6,17 @@ import org.apache.http.client.methods.HttpGet
 import org.scribe.model.{OAuthConstants, Verb, OAuthRequest, Token}
 import org.scribe.extractors.HeaderExtractorImpl
 import org.apache.http.message.BasicHeader
-import xml.XML
 import scala.collection.JavaConversions._
-import java.io.{Reader, LineNumberReader, InputStreamReader, InputStream}
+import java.io.InputStream
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.HttpResponse
-import io.{Codec, Source}
+import io.{BufferedSource, Codec, Source}
+import vkode.toita.comet.UserSession
 
 object TwitterSession {
 
-  private def authorizedRequest(token: String, secret: String, url: String) =
-    newHttpRequest (url, newOauthRequest (url, token, secret))
+  private def authorizedRequest(userSession: UserSession, url: String) =
+    newHttpRequest (url, newOauthRequest (url, userSession))
 
   private val key = System getProperty "key"
 
@@ -26,9 +26,9 @@ object TwitterSession {
 
   private val requestToken = service.getRequestToken
 
-  private def newOauthRequest(url: String, token: String, secret: String): OAuthRequest = {
+  private def newOauthRequest(url: String, userSession: UserSession): OAuthRequest = {
     val oauthRequest = new OAuthRequest(Verb.GET, url)
-    service.signRequest(new Token(token, secret), oauthRequest)
+    service.signRequest(new Token(userSession.token, userSession.secret), oauthRequest)
     oauthRequest
   }
 
@@ -46,48 +46,47 @@ object TwitterSession {
   }
 }
 
-case class TwitterSession (token: String, secret: String) {
+/**
+ * Handles connectivity with Twitter
+ */
+case class TwitterSession (userSession: UserSession) {
   import TwitterSession._
 
   implicit val charset = Codec("US-ASCII")
 
-  implicit def urlToAuthorizedRequest(url: String) = authorizedRequest(token, secret, url)
-
-  def fromStream[T](inputStream: InputStream, fun: InputStream => T) =
-    try fun(inputStream) finally inputStream close
-
-  def readLine (reader: LineNumberReader): String = {
-    val line = try
-    {
-      reader.readLine
-    } catch {
-      case e =>
-        e.printStackTrace
-        null
-    }
-    if (line == null) {
-      try {
-        reader.close
-      }
-      catch {
-        case e =>
-          e.printStackTrace
-      }
-    }
-    line
-  }
+  implicit def urlToAuthorizedRequest(url: String) = authorizedRequest(userSession, url)
 
   def lookup(url: String): String =
-    doWithURL (url, lineIterator(_)) mkString ("\n")
+    doWithURL (url, lineIterator(_, false)) mkString ("\n")
 
   def stream(url: String): Iterator[String] =
-    doWithURL (url, lineIterator(_) filterNot (empty(_)) takeWhile (_ != null))
+    doWithURL (url, lineIterator(_, true) filterNot (empty(_)) takeWhile (_ != null))
 
-  private def doWithURL[T](url: String, fun: InputStream => T): T = fun (response (url).getEntity.getContent)
+  def close {
+    activeSource map (_ close)
+  }
+
+  private var activeSource: Option[BufferedSource] = None
+
+  private def doWithURL[T](url: String, fun: InputStream => T): T =
+    fun (response (url).getEntity.getContent)
 
   private def response(url: HttpGet): HttpResponse = new DefaultHttpClient execute url
 
-  private def lineIterator(stream: InputStream): Iterator[String] = (Source fromInputStream stream) getLines
+  private def openSource(stream: InputStream, mainStream: Boolean) =
+    if (mainStream) activeSource match {
+      case None => {
+        val source = Source fromInputStream stream
+        activeSource = Option(source)
+        source
+      }
+      case Some(source) => error("Source already set: " + source)
+    } else {
+      Source fromInputStream stream
+    }
+
+  private def lineIterator(stream: InputStream, mainStream: Boolean): Iterator[String] =
+    openSource(stream, mainStream).getLines
 
   private def empty(line: String) = line == null || line.trim.isEmpty
 }

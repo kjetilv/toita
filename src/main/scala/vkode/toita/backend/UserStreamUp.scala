@@ -1,7 +1,10 @@
 package vkode.toita.backend
 
 import net.liftweb.http.CometActor
+import vkode.toita.comet.UserStream
 
-case class UserStreamUp(actor: CometActor)
+sealed trait UserStreamEvent
 
-case class UserStreamDown(actor: CometActor)
+case class UserStreamUp(actor: UserStream) extends UserStreamEvent
+
+case class UserStreamDown(actor: UserStream) extends UserStreamEvent

@@ -34,16 +34,32 @@ case class TOEntities(hashtags: List[TOHashtag],
                       mentions: List[TOMention],
                       urls: List[TOURL])
 
+trait Indexed {
+  val indices: List[Int]
+  val text: String
+
+  def a = indices(0)
+  def b = indices(1)
+
+  def sameIndexAs (idx: Indexed) = a == idx.a && b == idx.b
+
+  def before(indexed: Indexed) = a < indexed.b
+}
+
 case class TOHashtag(indices: List[Int],
-                     text: String);
+                     text: String) extends Indexed
 
 case class TOURL(indices: List[Int],
-                 url: String)
+                 url: String) extends Indexed {
+  val text = url
+}
 
 case class TOMention(id: BigInt,
                      name: String,
                      screen_name: String,
-                     indices: List[Int])
+                     indices: List[Int]) extends Indexed {
+  val text = screen_name
+}
 
 case class TOReply(in_reply_to_status_id: BigInt,
                    in_reply_to_user_id: BigInt,

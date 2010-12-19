@@ -12,7 +12,7 @@
     <properties>
         <scala.version>2.8.1</scala.version>
         <lift.scala.version>2.8.1</lift.scala.version>
-        <lift.version>2.2-SNAPSHOT</lift.version>
+        <lift.version>2.2-RC2</lift.version>
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -84,16 +84,16 @@
             <artifactId>lift-webkit_${lift.scala.version}</artifactId>
             <version>${lift.version}</version>
         </dependency>
-        <!--<dependency>-->
-        <!--<groupId>com.googlecode.scalaz</groupId>-->
-        <!--<artifactId>scalaz-core_2.8.0</artifactId>-->
-        <!--<version>5.0</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>com.googlecode.scalaz</groupId>-->
-        <!--<artifactId>scalaz-http_2.8.0</artifactId>-->
-        <!--<version>5.0</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.googlecode.scalaz</groupId>
+            <artifactId>scalaz-core_2.8.0</artifactId>
+            <version>5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.scalaz</groupId>
+            <artifactId>scalaz-http_2.8.0</artifactId>
+            <version>5.0</version>
+        </dependency>
         <!--<dependency>-->
         <!--<groupId>ch.qos.logback</groupId>-->
         <!--<artifactId>logback-classic</artifactId>-->

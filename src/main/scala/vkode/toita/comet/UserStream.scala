@@ -13,8 +13,16 @@ import net.liftweb.util.Helpers._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import java.util.Date
+import scalaz.Options
 
-class UserStream extends CometActor {
+case class UserSession(token: String, secret: String) {
+
+  def key = token + "-" + secret
+}
+
+class UserStream extends CometActor with Options {
+
+  val session = UserSession(System getProperty "token", System getProperty "apiSecret")
 
   implicit def date2Yoda (date: Date) = new DateTime(date)
 
@@ -27,63 +35,53 @@ class UserStream extends CometActor {
   override protected def localShutdown() = Updater ! UserStreamDown(this)
 
   override def render = bind("us",
-    "tweets" -> renderList,
-    "friends" -> renderFriends)
-
-  private def renderFriends =
-    <span> { friendIds map (_ mkString ",") getOrElse "No friends!" } </span>
+                             "tweets" -> (renderTable getOrElse <span>Initializing..</span>),
+                             "friends" -> (Rendrer render friendIds))
 
   private def friendIds: Option[List[BigInt]] = friends map (_ friends) map (_.friends)
 
-  private def renderList =
-    <table>
-      { bulletPoints }
-    </table>
-
-  private def newestFirst (tsu1: TwitterStatusUpdate, tsu2: TwitterStatusUpdate) =
-    tsu1.status.created_at isAfter tsu2.status.created_at
-
-  private def bulletPoints = statuses sortWith (newestFirst (_, _)) map (row (_)) takeWhile (_.isDefined) take 10 map (_.get)
-
-  private def row(event: TwitterEvent): Option[NodeSeq] =
-    event match {
-      case TwitterStatusUpdate(status, Some(user), _, _) =>
-        Some(
-          <tr>
-            <td width="50">
-                <img src={ user.profile_image_url } width="48" height="48"/>
-            </td>
-            <td width="300">
-              { status.text }
-            </td>
-          </tr>
-          <tr>
-            <td>{ user.screen_name }</td>
-            <td>{ user.name } @ { time(status.created_at) }</td>
-          </tr>)
-      case _ => None
-    }
-
-  private val formatter = DateTimeFormat forPattern ("yyyy-MM-dd hh:mm:ss")
-
-  private def time(dt: DateTime) = formatter print dt
-
-  private def addUpdate (update: TwitterStatusUpdate) = {
-    update +=: statuses
-  }
-
-  override def highPriority: PartialFunction[Any, Unit] = {
-    case update : TwitterStatusUpdate => {
-      update +=: statuses
-      partialUpdate (SetHtml ("tweets", renderList))
-      reRender (false)
-    }
-    case friends: TwitterFriends => {
-      this.friends = Some(friends)
-      partialUpdate (SetHtml ("friends", renderFriends))
-      reRender (false)
+  def renderTable: Option[NodeSeq] = {
+    try {
+      Option(Rendrer render statuses.toList)
+    } catch {
+      case e =>
+        e.printStackTrace
+        None
     }
   }
 
-  private def listSize = Text(statuses.size.toString)
+  def rerenderTable {
+    try {
+      val table: Option[NodeSeq] = renderTable
+      table map (t => {
+        partialUpdate(SetHtml("tweets", t))
+        reRender(false)
+      })
+    }
+    catch {
+      case e => e.printStackTrace
+    }
+  }
+
+  override def lowPriority: PartialFunction[Any, Unit] = {
+    case events: List[TwitterEvent] => {
+      try {
+        val updates = events filter (_.isInstanceOf[TwitterStatusUpdate]) map (_.asInstanceOf[TwitterStatusUpdate])
+        println(this + ": Updates: " + updates)
+        statuses ++= updates
+        rerenderTable
+        val friends = events filter (_.isInstanceOf[TwitterFriends]) map (_.asInstanceOf[TwitterFriends]) match {
+          case Nil =>
+          case friends => this.friends = Option(friends.last)
+          partialUpdate(SetHtml("friends", Rendrer render friendIds))
+          reRender(false)
+        }
+      } catch {
+        case e => e.printStackTrace
+      }
+    }
+  }
+
+  override def toString = getClass.getSimpleName +
+                          "[name:" + name + " " + statuses.size + " " + System.identityHashCode(this) + "]"
 }
