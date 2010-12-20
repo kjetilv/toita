@@ -96,7 +96,7 @@ object Rendrer {
       case TwitterStatusUpdate(status, _, TOEntities(hashtags, mentions, urls), reply) =>
         val entityIndices = (hashtags ++ mentions ++ urls) sortWith (_ before _)
         val replyIndex = indexed(reply, status.text)
-        val entityInserts = resolveEntities(replyIndex, entityIndices) map (entityInsert _)
+        val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert _)
         val textIndices = computeTextIndices (status.text, entityIndices, entityInserts)
         val textInserts = textIndices map (textInsert (status.text, _))
         val allInserts = (entityInserts ++ textInserts) sortWith (_ before _)

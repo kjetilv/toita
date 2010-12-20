@@ -60,10 +60,10 @@ case class TwitterSession (userSession: UserSession) {
     doWithURL (url, lineIterator(_, false)) mkString ("\n")
 
   def stream(url: String): Iterator[String] =
-    doWithURL (url, lineIterator(_, true) filterNot (empty(_)) takeWhile (_ != null))
+    doWithURL (url, lineIterator(_, true) takeWhile (_ != null))
 
   def close {
-    activeSource map (_ close)
+    activeSource map (_ close) foreach (source => activeSource = None)
   }
 
   private var activeSource: Option[BufferedSource] = None
@@ -72,6 +72,9 @@ case class TwitterSession (userSession: UserSession) {
     fun (response (url).getEntity.getContent)
 
   private def response(url: HttpGet): HttpResponse = new DefaultHttpClient execute url
+
+  private def lineIterator(stream: InputStream, mainStream: Boolean): Iterator[String] =
+    openSource(stream, mainStream).getLines.map(_.trim).filterNot(_.isEmpty)
 
   private def openSource(stream: InputStream, mainStream: Boolean) =
     if (mainStream) activeSource match {
@@ -84,9 +87,4 @@ case class TwitterSession (userSession: UserSession) {
     } else {
       Source fromInputStream stream
     }
-
-  private def lineIterator(stream: InputStream, mainStream: Boolean): Iterator[String] =
-    openSource(stream, mainStream).getLines
-
-  private def empty(line: String) = line == null || line.trim.isEmpty
 }

@@ -9,13 +9,16 @@ import net.liftweb.sitemap.Loc._
 import net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, StandardDBVendor}
 import java.sql.{Connection, DriverManager}
 import vkode.toita.model._
-
+import vkode.toita.backend.Updater
+import akka.actor.{ActorRef, Actor, ActorRegistry}
 
 /**
  * A class that's instantiated early and run.  It allows the application
  * to modify lift's environment
  */
 class Boot {
+
+  val updaterRef: ActorRef = Actor.actorOf[Updater].start
 
   def boot {
     LiftRules.addToPackages("vkode.toita")
@@ -49,6 +52,6 @@ class Boot {
    * Force the request to be UTF-8
    */
   private def makeUtf8(req: HTTPRequest) {
-    req.setCharacterEncoding("UTF-8")
+    req setCharacterEncoding "UTF-8"
   }
 }
