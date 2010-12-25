@@ -10,13 +10,11 @@ import scala.collection.JavaConversions._
 import java.io.InputStream
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.HttpResponse
-import io.{BufferedSource, Codec, Source}
-import vkode.toita.comet.UserSession
+import io.{Codec, Source}
+import java.util.concurrent.atomic.AtomicBoolean
+import scalaz.Options
 
 object TwitterSession {
-
-  private def authorizedRequest(userSession: UserSession, url: String) =
-    newHttpRequest (url, newOauthRequest (url, userSession))
 
   private val key = System getProperty "key"
 
@@ -47,44 +45,28 @@ object TwitterSession {
 }
 
 /**
- * Handles connectivity with Twitter
+ * Handles connectivity with Twitter.
  */
-case class TwitterSession (userSession: UserSession) {
+case class TwitterSession (userSession: UserSession) extends Options {
   import TwitterSession._
 
-  implicit val charset = Codec("US-ASCII")
+  def lookup(url: String): String = doWithURL (url, getStrings(_))
 
-  implicit def urlToAuthorizedRequest(url: String) = authorizedRequest(userSession, url)
+  def stream(url: String): TwitterStream = doWithURL (url, getStream(_))
 
-  def lookup(url: String): String =
-    doWithURL (url, lineIterator(_, false)) mkString ("\n")
+  private def getStream(inputStream: InputStream) = TwitterStream (lineIterator(inputStream), inputStream)
 
-  def stream(url: String): Iterator[String] =
-    doWithURL (url, lineIterator(_, true) takeWhile (_ != null))
+  private def getStrings (inputStream: InputStream) = lineIterator (inputStream) mkString ("\n")
 
-  def close {
-    activeSource map (_ close) foreach (source => activeSource = None)
-  }
-
-  private var activeSource: Option[BufferedSource] = None
+  private implicit val charset = Codec("US-ASCII")
 
   private def doWithURL[T](url: String, fun: InputStream => T): T =
-    fun (response (url).getEntity.getContent)
+    fun (response (authorizedRequest(url)).getEntity.getContent)
+
+  private def authorizedRequest(url: String) = newHttpRequest (url, newOauthRequest (url, userSession))
 
   private def response(url: HttpGet): HttpResponse = new DefaultHttpClient execute url
 
-  private def lineIterator(stream: InputStream, mainStream: Boolean): Iterator[String] =
-    openSource(stream, mainStream).getLines.map(_.trim).filterNot(_.isEmpty)
-
-  private def openSource(stream: InputStream, mainStream: Boolean) =
-    if (mainStream) activeSource match {
-      case None => {
-        val source = Source fromInputStream stream
-        activeSource = Option(source)
-        source
-      }
-      case Some(source) => error("Source already set: " + source)
-    } else {
-      Source fromInputStream stream
-    }
+  private def lineIterator(stream: InputStream): Iterator[String] =
+    (Source fromInputStream stream).getLines filterNot(_ == null) map (_.trim) filterNot (_.isEmpty)
 }

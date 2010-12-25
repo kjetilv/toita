@@ -29,36 +29,32 @@ object Rendrer {
   private def bulletPoints(statuses: List[TwitterStatusUpdate]): List[NodeSeq] =
     statuses sortWith (after (_, _)) take 10 flatMap (row (_))
 
-  private def row (event: TwitterEvent): List[NodeSeq] =
-    event match {
-      case tsu: TwitterStatusUpdate => try {
-        Rendrer render tsu
-      } catch {
-        case e => {
-          e.printStackTrace()
-          List(<tr><td>Bad render: { event }</td></tr>)
-        }
+  private def row (event: TwitterStatusUpdate): List[NodeSeq] =
+    try {
+      Rendrer render event
+    } catch {
+      case e => {
+        e.printStackTrace()
+        List(<tr><td>Bad render: { event }</td></tr>)
       }
-      case _ => List(<tr><td>Not handled: { event.getClass }</td></tr>,
-                     <!-- Not handled: {event} -->)
     }
 
-  def render(tsu: TwitterStatusUpdate): List[Node]=
-    tsu match {
-      case TwitterStatusUpdate(status, Some(user), entities, reply) =>
+  def render(status: TwitterStatusUpdate): List[Node]=
+    status match {
+      case TwitterStatusUpdate(status, meta, Some(user), entities, reply) =>
         List(<tr>
                <td width="50">
                    <img src={user.profile_image_url} width="48" height="48"/>
                </td>
                <td width="300">
-                 {textOf(TwitterStatusUpdate(status, Some(user), entities, reply))}
+                 {textOf(TwitterStatusUpdate(status, meta, Some(user), entities, reply))}
                </td>
              </tr>,
              <tr>
                <td>{user.screen_name}</td>
                <td>{user.name} @ {time(status.created_at)} ({ status.id })</td>
              </tr>)
-      case _ => List(<span>Not parsed: {tsu}</span>)
+      case _ => List(<span>Not parsed: {status}</span>)
     }
 
   private case class Insert(a: Int, b: Int, node: NodeSeq) {
@@ -89,11 +85,11 @@ object Rendrer {
 
   private def textOf(tsu: TwitterStatusUpdate) = {
     tsu match {
-      case TwitterStatusUpdate(status, _, TOEntities(Nil, Nil, Nil), None) =>
+      case TwitterStatusUpdate(status, _, _, TOEntities(Nil, Nil, Nil), None) =>
         <span>
           { status.text }
         </span>
-      case TwitterStatusUpdate(status, _, TOEntities(hashtags, mentions, urls), reply) =>
+      case TwitterStatusUpdate(status, _, _, TOEntities(hashtags, mentions, urls), reply) =>
         val entityIndices = (hashtags ++ mentions ++ urls) sortWith (_ before _)
         val replyIndex = indexed(reply, status.text)
         val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert _)

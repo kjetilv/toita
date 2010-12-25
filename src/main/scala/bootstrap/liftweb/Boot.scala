@@ -9,8 +9,8 @@ import net.liftweb.sitemap.Loc._
 import net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, StandardDBVendor}
 import java.sql.{Connection, DriverManager}
 import vkode.toita.model._
-import vkode.toita.backend.Updater
 import akka.actor.{ActorRef, Actor, ActorRegistry}
+import vkode.toita.backend.{StatusTracker, TwitterEventSource}
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -18,7 +18,7 @@ import akka.actor.{ActorRef, Actor, ActorRegistry}
  */
 class Boot {
 
-  val updaterRef: ActorRef = Actor.actorOf[Updater].start
+  val updaterRef: ActorRef = (Actor actorOf classOf[TwitterEventSource]).start
 
   def boot {
     LiftRules.addToPackages("vkode.toita")
@@ -33,10 +33,7 @@ class Boot {
 
     /*
      * Show the spinny image when an Ajax call starts
-     */
-    LiftRules.ajaxStart =
-      Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
-
+       */
     /*
      * Make the spinny image go away when it ends
      */

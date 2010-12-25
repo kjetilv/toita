@@ -9,46 +9,34 @@ import vkode.toita.backend._
 import net.liftweb.http.js.JsCmds._
 import java.util.Date
 import scalaz.Options
-import akka.actor.ActorRegistry
 import org.joda.time.{Duration, DateTime}
-
-trait UpdaterClient {
-
-  def update (msg: Any) = ActorRegistry.actorsFor[Updater] foreach (_ ! msg)
-}
-
-case class UserSession(token: String, secret: String) {
-
-  def key = token + "-" + secret
-}
 
 class UserStream extends CometActor with Options with UpdaterClient with Loggable {
 
-  val session = UserSession(System getProperty "token", System getProperty "apiSecret")
+  lazy val session = UserSession(System getProperty "token", System getProperty "apiSecret")
+
+  override protected def localSetup() = broadcast (UserStreamUp(this))
+
+  override protected def localShutdown() = broadcast (UserStreamDown(this))
 
   implicit def date2Yoda (date: Date) = new DateTime(date)
 
-  private val statuses = new scala.collection.mutable.ListBuffer[TwitterStatusUpdate]()
+  private var friends: Option[TwitterFriends] = None
 
-  private var friends = Option[TwitterFriends](null)
+  private var statuses: List[TwitterStatusUpdate] = Nil
 
   private var lastTableRerender = new DateTime(0)
-
-  override protected def localSetup() = update (UserStreamUp(this))
-
-  override protected def localShutdown() = update (UserStreamDown(this))
 
   override def render = bind("us",
                              "tweets" -> renderTable,
                              "friends" -> renderFriends)
 
-  private def friendIds: Option[List[BigInt]] = friends map (_ friends) map (_.friends)
-
-  def renderFriends = Rendrer render friendIds
+  def renderFriends: NodeSeq =
+    Rendrer render (friends map (_ friends) map (_.friends))
 
   def renderTable: NodeSeq =
     try {
-      Rendrer render statuses.toList
+      Rendrer render statuses
     } catch {
       case e =>
         logger.warn("Failed to render table!", e)
@@ -63,16 +51,9 @@ class UserStream extends CometActor with Options with UpdaterClient with Loggabl
     val now = new DateTime()
     if (new Duration(lastTableRerender, now).getMillis > 1000) {
       try {
-        partialUpdate(SetHtml("tweets", renderTable))
+        partialUpdate (SetHtml ("tweets", renderTable))
       } catch {
-        case e =>
-          logger.warn("Failed to render table!", e)
-          partialUpdate(SetHtml("tweets",
-                                <table>
-                                  <tr>
-                                    <td>Internal error updating table: {e}</td>
-                                  </tr>
-                                </table>))
+        case e => logger.warn("Failed to render table!", e)
       } finally {
         reRender(false)
         lastTableRerender = now
@@ -81,14 +62,14 @@ class UserStream extends CometActor with Options with UpdaterClient with Loggabl
   }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
-    case update: TwitterStatusUpdate =>
-      statuses += update
+    case update: List[TwitterStatusUpdate] =>
+      statuses = update
       rerenderTable
     case friends: TwitterFriends =>
-      partialUpdate(SetHtml("friends", Rendrer render friendIds))
-      reRender(false)
+      this.friends = Some(friends)
+      partialUpdate(SetHtml("friends", renderFriends))
+      reRender
   }
 
-  override def toString = getClass.getSimpleName +
-                          "[name:" + name + " " + statuses.size + " " + System.identityHashCode(this) + "]"
+  override def toString = getClass.getSimpleName + "[name:" + name + " " + System.identityHashCode(this) + "]"
 }

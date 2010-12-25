@@ -49,11 +49,12 @@ object JsonTransformer {
     Map("text" -> (json => {
       extract (json, classOf[TOStatus]) map (status => {
         val user = extract (json \ "user", classOf[TOUser])
+        val meta = extract (json, classOf[TOMeta])
         val hashtags = entities("hashtags", json, classOf[TOHashtag])
         val mentions = entities("user_mentions", json, classOf[TOMention])
         val urls = entities("urls", json, classOf[TOURL])
         val reply = extract (json, classOf[TOReply])
-        TwitterStatusUpdate(status, user, TOEntities(hashtags, mentions, urls), reply)
+        TwitterStatusUpdate(status, meta, user, TOEntities(hashtags, mentions, urls), reply)
       })
     }),
       "delete" -> (json => {

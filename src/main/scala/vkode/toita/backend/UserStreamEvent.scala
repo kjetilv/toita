@@ -1,6 +1,5 @@
 package vkode.toita.backend
 
-import net.liftweb.http.CometActor
 import vkode.toita.comet.UserStream
 
 sealed trait UserStreamEvent

@@ -23,7 +23,7 @@ case class TOStatusGeo(geo: Option[String],
                        coordinates: Option[String],
                        place: Option[String])
 
-case class TOStatusMeta(retweeted: Boolean,
+case class TOMeta(retweeted: Boolean,
                         truncated: Boolean,
                         source: String,
                         favorited: Boolean,
