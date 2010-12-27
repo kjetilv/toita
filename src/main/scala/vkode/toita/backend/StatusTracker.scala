@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.comet.DiagnosticsComet
 import com.weiglewilczek.slf4s.Logging
+import annotation.tailrec
 
 object StatusTracker {
   case object Boot
@@ -41,18 +42,10 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
 
   private def hasReplies (id: BigInt) = repliesTo contains id
 
-  private object Noode {
-
-    def apply(tsu: TwitterStatusUpdate): Noode = Noode(None, tsu, Nil)
-  }
-
-  private case class Noode(parent: Option[Noode], tsu: TwitterStatusUpdate, replies: List[Noode]) {
-
-    def add(reply: TwitterStatusUpdate) = this copy (replies = Noode(Some(this), reply, Nil) :: this.replies)
-  }
-
   def renderableStatuses: List[RenderableStatus] =
-    statusMap.keys.toList.diff(replies.toList) sortWith (_ > _) flatMap (renderableStatuses(_, 0))
+     roots sortWith (_ > _) flatMap (renderableStatuses(_, 0))
+
+  private def roots = statusMap.keys.toList.diff(replies.toList)
 
   private def renderableStatuses (id: BigInt, depth: Int): List[RenderableStatus] = {
     renderableStatus (id, depth) :: (repliesTo get id match {
@@ -91,7 +84,6 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
           }
         }
       })
-      println("Statuses: (replies: " + repliesTo.size + ")\n " + (renderableStatuses map (rs => rs.indent + rs.update.status.text) mkString "\n "))
       userStream ! renderableStatuses
   }
 
