@@ -1,7 +1,5 @@
 package vkode.toita.backend
 
-import net.liftweb.json.JsonParser
-import net.liftweb.json.JsonAST.{JArray, JValue}
 import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.comet.{DiagnosticsComet, UserStreamComet}
@@ -20,6 +18,8 @@ class ToitaCentral extends Actor with Options {
       diagnosticians = diagnosticians filterNot (_ == diagnostics)
     case DiagnosticsComet.StreamUp => diagnostic(DiagnosticsComet.StreamUp)
     case DiagnosticsComet.StreamDown => diagnostic(DiagnosticsComet.StreamDown)
+    case DiagnosticsComet.LookupStarted => diagnostic(DiagnosticsComet.LookupStarted)
+    case DiagnosticsComet.LookupEnded => diagnostic(DiagnosticsComet.LookupEnded)
   }
 
   def diagnostic(msg: Any) = diagnosticians foreach (_ ! msg)

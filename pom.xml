@@ -11,12 +11,12 @@
     <inceptionYear>2010</inceptionYear>
     <properties>
         <scala.version>2.8.1</scala.version>
-        <akka.version>1.0-RC1</akka.version>
+        <akka.version>1.0-RC2</akka.version>
         <scalaz.version>5.0</scalaz.version>
         <slf4s.version>1.0.3-SNAPSHOT</slf4s.version>
         <scalaz.scala.version>2.8.0</scalaz.scala.version>
         <lift.scala.version>2.8.1</lift.scala.version>
-        <lift.version>2.2-RC3</lift.version>
+        <lift.version>2.2-RC4</lift.version>
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -32,6 +32,7 @@
             <name>Scala-Tools Dependencies Repository for Releases</name>
             <url>http://scala-tools.org/repo-releases</url>
         </repository>
+
         <repository>
             <id>scala-tools.snapshots</id>
             <name>Scala-Tools Dependencies Repository for Snapshots</name>
@@ -41,6 +42,30 @@
                 <checksumPolicy>warn</checksumPolicy>
                 <updatePolicy>daily</updatePolicy>
             </snapshots>
+        </repository>
+
+        <repository>
+            <id>Akka</id>
+            <name>Akka Maven2 Repository</name>
+            <url>http://www.scalablesolutions.se/akka/repository/ </url>
+        </repository>
+
+        <repository>
+            <id>Multiverse</id>
+            <name>Multiverse Maven2 Repository</name>
+            <url>http://multiverse.googlecode.com/svn/maven-repository/releases/</url>
+        </repository>
+
+        <repository>
+            <id>GuiceyFruit</id>
+            <name>GuiceyFruit Maven2 Repository</name>
+            <url>http://guiceyfruit.googlecode.com/svn/repo/releases/ </url>
+        </repository>
+
+        <repository>
+            <id>JBoss</id>
+            <name>JBoss Maven2 Repository</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public/ </url>
         </repository>
     </repositories>
 
@@ -103,16 +128,6 @@
             <artifactId>scalaz-http_${scalaz.scala.version}</artifactId>
             <version>${scalaz.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.weiglewilczek.slf4s</groupId>
-            <artifactId>slf4s_${scala.version}</artifactId>
-            <version>${slf4s.version}</version>
-        </dependency>
-        <!--<dependency>-->
-        <!--<groupId>ch.qos.logback</groupId>-->
-        <!--<artifactId>logback-classic</artifactId>-->
-        <!--<version>0.9.26</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

@@ -13,7 +13,7 @@ case class TOStatus(id: BigInt,
                     favorited: Boolean,
                     created_at: Date
                     //                    retweeted_count: Int
-                     ) extends TopLevel
+                       ) extends TopLevel
 
 case class TOStatusRef(id: BigInt, user_id: BigInt)
 
@@ -22,11 +22,11 @@ case class TOStatusGeo(geo: Option[String],
                        place: Option[String])
 
 case class TOMeta(retweeted: Boolean,
-                        truncated: Boolean,
-                        source: String,
-                        favorited: Boolean,
-                        created_at: String,
-                        contributors: String)
+                  truncated: Boolean,
+                  source: String,
+                  favorited: Boolean,
+                  created_at: String,
+                  contributors: String)
 
 case class TOEntities(hashtags: List[TOHashtag],
                       mentions: List[TOMention],

@@ -23,6 +23,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             10,
                                                                             "http://www.vg.no")),
+                                                                None,
                                                                 TOEntities(List(TOHashtag(List(hIdx1, hIdx1 + 4), "#zot"),
                                                                                 TOHashtag(List(hIdx2, hIdx2 + 4), "#zip")),
                                                                            List(TOMention(10, "zip", "Zip", List(atIdx + 1, atIdx + 4))),
@@ -45,6 +46,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             10,
                                                                             "http://www.vg.no")),
+                                                                None,
                                                                 TOEntities(Nil,
                                                                            Nil,
                                                                            Nil),
@@ -65,6 +67,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             10,
                                                                             "http://www.vg.no")),
+                                                                None,
                                                                 TOEntities(Nil,
                                                                            Nil,
                                                                            Nil),
@@ -86,6 +89,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             13623,
                                                                             "http://a2.twimg.com/profile_images/1097295142/Madsws_normal.jpeg")),
+                                                                None,
                                                                 TOEntities(List(),
                                                                            List(TOMention(9550672,
                                                                                           "Gunnar R Tjomlid",
@@ -113,6 +117,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             2257,
                                                                             "http://a3.twimg.com/profile_images/1128768899/41411_861520108_1603_n_normal.jpg")),
+                                                                None,
                                                                 TOEntities(List(),
                                                                            List(),
                                                                            List(TOURL(List(23, 43),"http://bit.ly/giVQdm"))),
@@ -136,6 +141,7 @@ class RenderStuff {
                                                                             Some("en"),
                                                                             10,
                                                                             "http://www.vg.no")),
+                                                                None,
                                                                 TOEntities(Nil,
                                                                            List(TOMention(10, "zip", "Zip", List(atIdx + 1, atIdx + 4))),
                                                                            Nil),
@@ -157,6 +163,7 @@ class RenderStuff {
                                                                           Some("en"),
                                                                           9646,
                                                                           """http://a3.twimg.com/profile_images/610112767/Screen_shot_2009-10-29_at_15.25.06_normal.png""")),
+                                                              None,
                                                               TOEntities(List(),
                                                                          List(),
                                                                          List()),
@@ -169,7 +176,7 @@ class RenderStuff {
   private def parseAndRender(json: String): Unit = {
     import ParseStuff._
     val event = parse(json).get.asInstanceOf[TwitterStatusUpdate]
-    val nodes = Rendrer render RenderableStatus(event, 0)
+    val nodes = Rendrer render ConversationItem(event, 0)
     Assert.assertEquals("Bad render: " + nodes,
                         2, nodes.size)
   }

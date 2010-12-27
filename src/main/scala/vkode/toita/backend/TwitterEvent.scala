@@ -15,10 +15,13 @@ case class TwitterStatusDelete(status: TOStatusRef) extends TwitterEvent
 case class TwitterStatusUpdate(status: TOStatus,
                                meta: Option[TOMeta],
                                user: Option[TOUser],
+                               retweeted: Option[TwitterStatusUpdate],
                                entities: TOEntities,
                                reply: Option[TOReply],
                                deleted: Boolean = false)
-  extends TwitterEvent {
+    extends TwitterEvent with Treeable {
+
+  def name = user map (_.screen_name) getOrElse "anonymous"
 
   def timestamp = status.created_at.getTime
 

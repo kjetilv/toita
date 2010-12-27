@@ -1,7 +1,7 @@
 package vkode.toita.backend
 
 import java.io.InputStream
-import com.weiglewilczek.slf4s.Logging
+import akka.util.Logging
 
 case class TwitterStream(private val stream: Iterator[String],
                          private val source: InputStream) extends Logging with Iterator[String] {
@@ -13,6 +13,6 @@ case class TwitterStream(private val stream: Iterator[String],
   def close = try {
     source.close
   } catch {
-    case e => logger.warn(this + " failed to close stream!", e)
+    case e => log.warn(this + " failed to close stream!", e)
   }
 }

@@ -20,7 +20,7 @@ class UserStreamComet
 
   private var friends: Option[TwitterFriends] = None
 
-  private var statuses: List[RenderableStatus] = Nil
+  private var statuses: List[ConversationItem[TwitterStatusUpdate]] = Nil
 
   private var lastTableRerender = new DateTime(0)
 
@@ -59,7 +59,7 @@ class UserStreamComet
   }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
-    case update: List[RenderableStatus] =>
+    case update: List[ConversationItem[TwitterStatusUpdate]] =>
       statuses = update
       rerenderTable
     case friends: TwitterFriends =>
