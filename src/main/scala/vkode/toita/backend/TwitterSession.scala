@@ -11,7 +11,6 @@ import java.io.InputStream
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.HttpResponse
 import io.{Codec, Source}
-import java.util.concurrent.atomic.AtomicBoolean
 import scalaz.Options
 
 object TwitterSession {
@@ -47,12 +46,21 @@ object TwitterSession {
 /**
  * Handles connectivity with Twitter.
  */
-case class TwitterSession (userSession: UserSession) extends Options {
+class TwitterSession (userSession: UserSession) extends Options {
   import TwitterSession._
+
+  def lookup(id: BigInt): String =
+    lookup ("http://api.twitter.com/1/statuses/show/" + id + ".json?include_entities=true")
+
+  def homeTimeline =
+    lookup ("http://api.twitter.com/1/statuses/home_timeline.json?count=10&include_entities=true")
+
+  def userStream = stream ("https://userstream.twitter.com/2/user.json")
 
   def lookup(url: String): String = doWithURL (url, getStrings(_))
 
-  def stream(url: String): TwitterStream = doWithURL (url, getStream(_))
+  def stream(url: String): TwitterStream =
+    doWithURL (url, getStream(_))
 
   private def getStream(inputStream: InputStream) = TwitterStream (lineIterator(inputStream), inputStream)
 

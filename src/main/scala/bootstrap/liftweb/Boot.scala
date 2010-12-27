@@ -10,7 +10,7 @@ import net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionI
 import java.sql.{Connection, DriverManager}
 import vkode.toita.model._
 import akka.actor.{ActorRef, Actor, ActorRegistry}
-import vkode.toita.backend.{StatusTracker, TwitterEventSource}
+import vkode.toita.backend.ToitaCentral
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -18,7 +18,7 @@ import vkode.toita.backend.{StatusTracker, TwitterEventSource}
  */
 class Boot {
 
-  val updaterRef: ActorRef = (Actor actorOf classOf[TwitterEventSource]).start
+  (Actor actorOf classOf[ToitaCentral]).start
 
   def boot {
     LiftRules.addToPackages("vkode.toita")

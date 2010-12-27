@@ -1,7 +1,14 @@
 <lift:surround with="default" at="content">
-    <div>
-        <lift:comet type="UserStream" name="UserStream">
-            <us:tweets>No data received yet</us:tweets>
-        </lift:comet>
-    </div>
+  <lift:comet type="DiagnosticsComet" name="Diagnostics">
+    <ul>
+      <li>Streams up: <dia:streams/></li>
+      <li>Replies to resolve: <dia:lookups/></li>
+    </ul>
+  </lift:comet>
+  <br/>
+  <div>
+    <lift:comet type="UserStreamComet" name="UserStream">
+      <us:tweets>No data received yet</us:tweets>
+    </lift:comet>
+  </div>
 </lift:surround>

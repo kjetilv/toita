@@ -11,19 +11,16 @@ import java.util.Date
 import scalaz.Options
 import org.joda.time.{Duration, DateTime}
 
-class UserStream extends CometActor with Options with UpdaterClient with Loggable {
+class UserStreamComet
+    extends CometActor with Options with ToitaRegister with Loggable {
 
   lazy val session = UserSession(System getProperty "token", System getProperty "apiSecret")
-
-  override protected def localSetup() = broadcast (UserStreamUp(this))
-
-  override protected def localShutdown() = broadcast (UserStreamDown(this))
 
   implicit def date2Yoda (date: Date) = new DateTime(date)
 
   private var friends: Option[TwitterFriends] = None
 
-  private var statuses: List[TwitterStatusUpdate] = Nil
+  private var statuses: List[RenderableStatus] = Nil
 
   private var lastTableRerender = new DateTime(0)
 
@@ -36,7 +33,7 @@ class UserStream extends CometActor with Options with UpdaterClient with Loggabl
 
   def renderTable: NodeSeq =
     try {
-      Rendrer render statuses
+      Rendrer render (statuses take 100)
     } catch {
       case e =>
         logger.warn("Failed to render table!", e)
@@ -62,7 +59,7 @@ class UserStream extends CometActor with Options with UpdaterClient with Loggabl
   }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
-    case update: List[TwitterStatusUpdate] =>
+    case update: List[RenderableStatus] =>
       statuses = update
       rerenderTable
     case friends: TwitterFriends =>

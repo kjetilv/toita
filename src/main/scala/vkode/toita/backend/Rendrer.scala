@@ -18,18 +18,16 @@ object Rendrer {
   def render(friendIds: Option[List[BigInt]])=
     <span> { friendIds map (_ mkString ",") getOrElse "No friends!" } </span>
 
-  def render (statuses: List[TwitterStatusUpdate]) =
-    <table>
+  def renderStatuses (statuses: List[TwitterStatusUpdate]) = render (statuses map (RenderableStatus(_, 0)))
+
+  def render (statuses: List[RenderableStatus]) =
+    <table border="2" rules="rows">
       { bulletPoints (statuses) }
     </table>
 
-  private def after (tsu1: TwitterStatusUpdate, tsu2: TwitterStatusUpdate) =
-    tsu1.status.created_at isAfter tsu2.status.created_at
+  private def bulletPoints(statuses: List[RenderableStatus]): List[NodeSeq] = statuses flatMap (row (_))
 
-  private def bulletPoints(statuses: List[TwitterStatusUpdate]): List[NodeSeq] =
-    statuses sortWith (after (_, _)) take 10 flatMap (row (_))
-
-  private def row (event: TwitterStatusUpdate): List[NodeSeq] =
+  private def row (event: RenderableStatus): List[NodeSeq] =
     try {
       Rendrer render event
     } catch {
@@ -39,22 +37,25 @@ object Rendrer {
       }
     }
 
-  def render(status: TwitterStatusUpdate): List[Node]=
-    status match {
-      case TwitterStatusUpdate(status, meta, Some(user), entities, reply) =>
+  def render(renderableStatus: RenderableStatus): List[Node]=
+    renderableStatus match {
+      case RenderableStatus(TwitterStatusUpdate(status, meta, Some(user), entities, reply, _), indent) =>
+        val spaces = (1 to indent).toList.map((x: Int) => <span>&nbsp;&nbsp;</span>)
+        val arrows = (1 to indent).toList.map((x: Int) => <span>&#8618;</span>)
         List(<tr>
                <td width="50">
-                   <img src={user.profile_image_url} width="48" height="48"/>
+                 { spaces }
+                 <img src={user.profile_image_url} width="48" height="48"/>
                </td>
                <td width="300">
-                 {textOf(TwitterStatusUpdate(status, meta, Some(user), entities, reply))}
+                 { arrows :+ textOf(renderableStatus.update) }
                </td>
              </tr>,
              <tr>
-               <td>{user.screen_name}</td>
-               <td>{user.name} @ {time(status.created_at)} ({ status.id })</td>
+               <td>{spaces} { user.screen_name}</td>
+               <td>{arrows} { user.name } @ { time(status.created_at)} ({ status.id })</td>
              </tr>)
-      case _ => List(<span>Not parsed: {status}</span>)
+      case _ => List(<span>Not parsed: {renderableStatus}</span>)
     }
 
   private case class Insert(a: Int, b: Int, node: NodeSeq) {
@@ -85,11 +86,11 @@ object Rendrer {
 
   private def textOf(tsu: TwitterStatusUpdate) = {
     tsu match {
-      case TwitterStatusUpdate(status, _, _, TOEntities(Nil, Nil, Nil), None) =>
+      case TwitterStatusUpdate(status, _, _, TOEntities(Nil, Nil, Nil), None, _) =>
         <span>
           { status.text }
         </span>
-      case TwitterStatusUpdate(status, _, _, TOEntities(hashtags, mentions, urls), reply) =>
+      case TwitterStatusUpdate(status, _, _, TOEntities(hashtags, mentions, urls), reply, _) =>
         val entityIndices = (hashtags ++ mentions ++ urls) sortWith (_ before _)
         val replyIndex = indexed(reply, status.text)
         val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert _)

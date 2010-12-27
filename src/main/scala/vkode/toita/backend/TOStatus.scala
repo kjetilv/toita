@@ -1,7 +1,5 @@
 package vkode.toita.backend
 
-import org.joda.time.DateTime
-import java.net.URL
 import java.util.Date
 
 trait TopLevel
