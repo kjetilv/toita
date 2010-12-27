@@ -3,7 +3,8 @@ A playground project with many things going for it:
  - Scala-based
  - Lift-based!
  - Comet-based!!
- - Does Twitter, with JSON, User Streams and OAUTH!
+ - Uses Akka!!!
+ - Does Twitter, with JSON, User Streams and OAUTH (!)
 
 Some things it don't got going for it:
 
