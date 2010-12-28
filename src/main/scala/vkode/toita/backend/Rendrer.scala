@@ -18,15 +18,13 @@ object Rendrer {
   def render(friendIds: Option[List[BigInt]]) =
     <span> { friendIds map (_ mkString ",") getOrElse "No friends!" } </span>
 
-  def renderStatuses (statuses: List[TwitterStatusUpdate]) =
-    render (statuses map (ConversationItem[TwitterStatusUpdate](_, 0)))
-
   def render (statuses: List[ConversationItem[TwitterStatusUpdate]]) =
     <table border="2" rules="rows">
       { bulletPoints (statuses) }
     </table>
 
-  private def bulletPoints(statuses: List[ConversationItem[TwitterStatusUpdate]]): List[NodeSeq] = statuses flatMap (row (_))
+  private def bulletPoints(statuses: List[ConversationItem[TwitterStatusUpdate]]): List[NodeSeq] =
+    statuses flatMap (row (_))
 
   private def row (event: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
     try {
@@ -38,10 +36,11 @@ object Rendrer {
       }
     }
 
-  def render(renderableStatus: ConversationItem[TwitterStatusUpdate]): List[Node]=
-    renderableStatus match {
+  def render(item: ConversationItem[TwitterStatusUpdate]): List[Node]=
+    item match {
       case ConversationItem(TwitterStatusUpdate(status, meta, Some(user), retweeted, entities, reply, deleted),
-                            indent) =>
+                            indent,
+                            _, _, _) =>
         val arrows = (1 to indent).toList.map(x => <span>&#8618;</span>)
         val spaces = (1 to indent).toList.map(x => <span>&nbsp;&nbsp;</span>)
         List(<tr>
@@ -49,23 +48,29 @@ object Rendrer {
                  { spaces } { img(user, math.max(12, 48 - (indent * 8))) }
                </td>
                <td width="300">
-               { arrows :+ textOf(renderableStatus.t) }
+                 { arrows :+ textOf(item.t) }
                </td>
              </tr>,
              <tr>
-               <td/>
+                 <td/>
                <td>
-                 {arrows} { user.name } @ { time(status.created_at)} [{ status.id }]
+                 {arrows} { user.name } @ { time(meta.created_at) } [{ status.id }]
                  { retweeted match {
                  case Some(TwitterStatusUpdate
-                               (TOStatus(id, _, _, _, _, date), _, Some(TOUser(_, screen_name, name, _, _, _)), _, _, _, _)) =>
+                               (TOStatus(id, _),
+                                TOMeta(_, _, _, _, _, date, _),
+                                Some(TOUser(_, screen_name, name, _, _, _)),
+                                _,
+                                _,
+                                _,
+                                _)) =>
                    <span><br/>{arrows} Retweeted by { screen_name + "/" + name } @ { time(date) } ({ id })</span>
                  case _ =>
                      <span/>
                }}
                </td>
              </tr>)
-      case _ => List(<span>Not parsed: {renderableStatus}</span>)
+      case _ => List(<span>Not parsed: {item}</span>)
     }
 
   private def img(user: TOUser, size: Int = 24) =

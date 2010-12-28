@@ -54,7 +54,7 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
         case None => statusMap
         case Some(tsu) => statusMap + (id -> tsu.copy(deleted = true))
       }
-      userStream ! TreeBuilder(roots, statusMap, repliesTo).build.items
+      updateConversation
     case TwitterFriends(TOFriends(ids)) =>
       log.info("Friends: " + ids.mkString(" "))
     case statusUpdate: TwitterStatusUpdate =>
@@ -75,10 +75,12 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
             }
           }
         })
-        println(TreeBuilder(roots, statusMap, repliesTo).build.items)
-        userStream ! TreeBuilder(roots, statusMap, repliesTo).build.items
+        updateConversation
       }
   }
+
+  private def updateConversation =
+    userStream ! Conversation(roots, statusMap, repliesTo)
 
   private def message (line: String) = events(line) foreach (self ! _)
 

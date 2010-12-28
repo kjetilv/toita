@@ -20,7 +20,7 @@ class UserStreamComet
 
   private var friends: Option[TwitterFriends] = None
 
-  private var statuses: List[ConversationItem[TwitterStatusUpdate]] = Nil
+  private var conversation: Option[Conversation[TwitterStatusUpdate]] = None
 
   private var lastTableRerender = new DateTime(0)
 
@@ -33,15 +33,11 @@ class UserStreamComet
 
   def renderTable: NodeSeq =
     try {
-      Rendrer render (statuses take 100)
+      conversation map (conv => Rendrer render (conv.items take 100)) getOrElse <span>Waiting for conversation...</span>
     } catch {
       case e =>
         logger.warn("Failed to render table!", e)
-        <table>
-          <tr>
-            <td>Internal error rendering table {e}</td>
-          </tr>
-        </table>
+        <span>Internal error rendering table {e}</span>
     }
 
   def rerenderTable = {
@@ -59,8 +55,8 @@ class UserStreamComet
   }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
-    case update: List[ConversationItem[TwitterStatusUpdate]] =>
-      statuses = update
+    case update: Conversation[TwitterStatusUpdate] =>
+      conversation = Option(update)
       rerenderTable
     case friends: TwitterFriends =>
       this.friends = Some(friends)

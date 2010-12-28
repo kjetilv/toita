@@ -49,7 +49,7 @@ object JsonTransformer {
     Map("text" -> (json => {
       extract (json, classOf[TOStatus]) map (status => {
         val user = extract (json \ "user", classOf[TOUser])
-        val meta = extract (json, classOf[TOMeta])
+        val meta = extract (json, classOf[TOMeta]) get
         val retweeted = json \ "retweeted_status" match {
           case JNull => None
           case json => apply(json) match {

@@ -6,14 +6,8 @@ trait TopLevel
 
 case class TOFriends(friends: List[BigInt])
 
-case class TOStatus(id: BigInt,
-                    text: String,
-                    truncated: Boolean,
-                    source: Option[String],
-                    favorited: Boolean,
-                    created_at: Date
-                    //                    retweeted_count: Int
-                       ) extends TopLevel
+case class TOStatus(id: BigInt, text: String)
+    extends TopLevel
 
 case class TOStatusRef(id: BigInt, user_id: BigInt)
 
@@ -21,11 +15,17 @@ case class TOStatusGeo(geo: Option[String],
                        coordinates: Option[String],
                        place: Option[String])
 
+object TOMeta {
+
+  val Null = TOMeta(false, None, false, "Unknown Source", false, new Date(0), "")
+}
+
 case class TOMeta(retweeted: Boolean,
+                  retweeted_count: Option[BigInt],
                   truncated: Boolean,
                   source: String,
                   favorited: Boolean,
-                  created_at: String,
+                  created_at: Date,
                   contributors: String)
 
 case class TOEntities(hashtags: List[TOHashtag],
