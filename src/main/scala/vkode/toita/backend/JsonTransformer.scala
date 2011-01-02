@@ -1,34 +1,50 @@
 package vkode.toita.backend
 
-import net.liftweb.json.JsonAST.{JValue, JField, JArray, JNothing, JString, JInt, JBool, JNull}
-import net.liftweb.json.{Extraction, DefaultFormats, DateFormat}
+import net.liftweb.json.JsonAST.{JValue, JField, JArray, JNothing, JNull}
 import reflect.Manifest
 import java.util.Date
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.DateTime
+import net.liftweb.json._
+import java.io.{File, PrintWriter, FileWriter}
+import akka.util.Logging
 
-object JsonTransformer {
-  //  def fields(fields: List[JField]): Map[String, Any] =
-  //  private implicit val formats = net.liftweb.json.DefaultFormats
+object JsonTransformer extends Logging {
 
-  private implicit val fmtz = new DefaultFormats {
-    override val dateFormat = new DateFormat {
-      private val f = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy")
-      def parse(s: String) =
-        try {
-          Option(f parse s)
-        } catch {
-          case _ => None
-        }
-      def format(d: Date) = f format d
+  private lazy val file = {
+    val file = new File("stream.json")
+    log.info("JSON file: " + file.getAbsolutePath)
+    file
+  }
+
+  private lazy val doWrite = System getProperty ("writestream") equalsIgnoreCase "true"
+
+  private lazy val writer = new PrintWriter(new FileWriter(file, true))
+
+  private def write(json: JValue) = if (doWrite) json match {
+    case JNothing =>
+      writer println ("# @" + new Date + ": Nothing heard")
+      writer println
+    case json => try {
+      writer println ("# @" + new Date)
+      writer println (Printer.pretty(JsonAST.render(json)))
+      writer println
+    } finally {
+      writer.flush
     }
   }
 
-  def apply(json: JValue): Option[TwitterEvent] = transformers.iterator find (_ match {
-    case (tag, _) => json \ tag != JNothing
-  }) map (_ match {
-    case (_, fun) => fun (json)
-  }) getOrElse None
+  private implicit val fmtz = new DefaultFormats {
+
+    override protected def dateFormatter = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy")
+  }
+
+  def getEvent(json: JValue): Option[TwitterEvent] = {
+    write(json)
+    transformers.iterator find (_ match {
+      case (tag, _) => json \ tag != JNothing
+    }) map (_ match {
+      case (_, fun) => fun (json)
+    }) getOrElse None
+  }
 
   def entities[T](name: String, jo: JValue, mt: Class[T]): List[T] = {
     implicit val imf = Manifest classType mt
@@ -52,7 +68,8 @@ object JsonTransformer {
         val meta = extract (json, classOf[TOMeta]) get
         val retweeted = json \ "retweeted_status" match {
           case JNull => None
-          case json => apply(json) match {
+          case JNothing => None
+          case json => getEvent(json) match {
             case tsu: TwitterStatusUpdate => Some(tsu)
             case _ => None
           }
@@ -65,10 +82,10 @@ object JsonTransformer {
         TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply)
       })
     }),
-      "delete" -> (json => {
-        extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_))
-      }),
-      "friends" -> (json => {
-        extract (json, classOf[TOFriends]) map (TwitterFriends (_))
-      }))
+        "delete" -> (json => {
+          extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_))
+        }),
+        "friends" -> (json => {
+          extract (json, classOf[TOFriends]) map (TwitterFriends (_))
+        }))
 }

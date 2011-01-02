@@ -3,7 +3,7 @@ package vkode.toita.backend
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import xml.{Elem, Node, NodeSeq, Text}
+import xml.{Elem, NodeSeq, Text}
 
 object Rendrer {
 
@@ -36,25 +36,27 @@ object Rendrer {
       }
     }
 
-  def render(item: ConversationItem[TwitterStatusUpdate]): List[Node]=
+  def render(item: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
     item match {
-      case ConversationItem(TwitterStatusUpdate(status, meta, Some(user), retweeted, entities, reply, deleted),
+      case ConversationItem(TwitterStatusUpdate(status, meta,
+                                                Some(TOUser(_, screen_name, name, _, _, imageUrl)),
+                                                retweeted, entities, reply, deleted),
                             indent,
-                            _, _, _) =>
+                            _, _, _, _, _) =>
         val arrows = (1 to indent).toList.map(x => <span>&#8618;</span>)
         val spaces = (1 to indent).toList.map(x => <span>&nbsp;&nbsp;</span>)
         List(<tr>
                <td width="50">
-                 { spaces } { img(user, math.max(12, 48 - (indent * 8))) }
+                 { spaces } { img(imageUrl, math.max(12, 48 - (indent * 8))) }
                </td>
                <td width="300">
                  { arrows :+ textOf(item.t) }
                </td>
              </tr>,
              <tr>
-                 <td/>
+               <td></td>
                <td>
-                 {arrows} { user.name } @ { time(meta.created_at) } [{ status.id }]
+                 {arrows} { screen_name } @ { time(meta.created_at) } [{ status.id }]
                  { retweeted match {
                  case Some(TwitterStatusUpdate
                                (TOStatus(id, _),
@@ -69,12 +71,20 @@ object Rendrer {
                      <span/>
                }}
                </td>
-             </tr>)
+             </tr>) ++ (if (item.nodeCount > 1)
+          <tr>
+            <td></td>
+            <td>
+              {item.nodeCount - 1}
+              { if (item.nodeCount > 2) "replies" else "reply" }
+              downstream: { (item.namesOther) mkString ", "}</td>
+          </tr>
+        else Nil)
       case _ => List(<span>Not parsed: {item}</span>)
     }
 
-  private def img(user: TOUser, size: Int = 24) =
-      <img src={user.profile_image_url} width={ "" + size } height={ "" + size }/>
+  private def img(url: String, size: Int = 24) =
+      <img src={url} width={ "" + size } height={ "" + size }/>
 
   private case class Insert(a: Int, b: Int, node: NodeSeq) {
     def before(insert: Insert) = a < insert.a
@@ -129,11 +139,12 @@ object Rendrer {
     case None => <span/>
   }
 
-  private def resolveEntities(replyIndex: Option[TOMention], indices: List[Indexed]) = (replyIndex -> indices) match {
-    case (None, indices) => indices
-    case (Some(mention), indices) if (indices exists (_ sameIndexAs mention)) => indices
-    case (Some(mention), indices) => mention :: indices
-  }
+  private def resolveEntities(replyIndex: Option[TOMention], indices: List[Indexed]) =
+    (replyIndex -> indices) match {
+      case (None, indices) =>
+        indices
+      case (Some(reply), indices) => if (indices exists (_ sameAs reply)) indices else reply :: indices
+    }
 
   private def indexed(reply: Option[TOReply], text: String): Option[TOMention] = reply match {
     case None => None

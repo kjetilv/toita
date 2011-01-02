@@ -12,17 +12,13 @@ import scalaz.Options
 import org.joda.time.{Duration, DateTime}
 
 class UserStreamComet
-    extends CometActor with Options with ToitaRegister with Loggable {
-
-  lazy val session = UserSession(System getProperty "token", System getProperty "apiSecret")
+    extends CometActor with Options with ToitaRegister with ToitaSessionUser with Loggable {
 
   implicit def date2Yoda (date: Date) = new DateTime(date)
 
   private var friends: Option[TwitterFriends] = None
 
   private var conversation: Option[Conversation[TwitterStatusUpdate]] = None
-
-  private var lastTableRerender = new DateTime(0)
 
   override def render = bind("us",
                              "tweets" -> renderTable,
@@ -40,19 +36,14 @@ class UserStreamComet
         <span>Internal error rendering table {e}</span>
     }
 
-  def rerenderTable = {
-    val now = new DateTime()
-    if (new Duration(lastTableRerender, now).getMillis > 1000) {
+  def rerenderTable =
       try {
         partialUpdate (SetHtml ("tweets", renderTable))
       } catch {
         case e => logger.warn("Failed to render table!", e)
       } finally {
-        reRender(false)
-        lastTableRerender = now
+        reRender
       }
-    }
-  }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
     case update: Conversation[TwitterStatusUpdate] =>

@@ -8,13 +8,17 @@ import xml.NodeSeq
 
 object DiagnosticsComet {
 
-  case object StreamUp
+  trait Timed {
+    def timestamp: Long = System.currentTimeMillis
+  }
 
-  case object StreamDown
+  case class StreamUp extends Timed
 
-  case object LookupStarted
+  case class StreamDown extends Timed
 
-  case object LookupEnded
+  case class LookupStarted extends Timed
+
+  case class LookupEnded extends Timed
 }
 
 class DiagnosticsComet extends CometActor with ToitaRegister {

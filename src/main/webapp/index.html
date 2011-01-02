@@ -1,11 +1,17 @@
 <lift:surround with="default" at="content">
+  <lift:with-param name="followees">
+    <lift:comet type="FolloweesComet" name="FolloweesComet">
+      <f:list/>
+    </lift:comet>
+  </lift:with-param>
+  <lift:with-param name="diagnostics">
   <lift:comet type="DiagnosticsComet" name="Diagnostics">
     <ul>
       <li>Streams up: <dia:streams/></li>
       <li>Replies to resolve: <dia:lookups/></li>
     </ul>
   </lift:comet>
-  <br/>
+  </lift:with-param>
   <div>
     <lift:comet type="UserStreamComet" name="UserStream">
       <us:tweets>No data received yet</us:tweets>

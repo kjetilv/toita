@@ -1,8 +1,6 @@
 package vkode.toita.backend
 
 import net.liftweb.http.CometActor
-import net.liftweb.json.JsonAST.{JValue, JArray}
-import net.liftweb.json.JsonParser
 import java.util.concurrent.atomic.AtomicBoolean
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.comet.DiagnosticsComet
@@ -13,39 +11,7 @@ object StatusTracker {
 }
 
 class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, diagnostics: ActorRef)
-    extends Actor with Logging {
-
-  private val booted = new AtomicBoolean
-
-  private var twitterStream: Option[TwitterStream] = None
-
-  private def boot =
-    if (booted compareAndSet (false, true)) {
-      Actor spawn {
-        message (twitterSession.homeTimeline)
-      }
-      val stream = twitterSession.userStream
-      this.twitterStream = Some(stream)
-      Actor spawn {
-        for (line <- stream) message (line)
-      }
-    }
-
-  override def postStop = twitterStream foreach (_.close)
-
-  private var statusMap = Map[BigInt, TwitterStatusUpdate]()
-
-  private var replies = Set[BigInt]()
-
-  private var totalRepliesCount = Map[BigInt, Int]()
-
-  private var repliesTo = Map[BigInt, List[BigInt]]()
-
-  private def hasReplies (id: BigInt) = repliesTo contains id
-
-  private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
-
-  def statuses: List[TwitterStatusUpdate] = this.statusMap.values.toList
+    extends Actor with Logging with JsonEvents {
 
   def receive = {
     case StatusTracker.Boot => boot
@@ -79,23 +45,27 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
       }
   }
 
-  private def updateConversation =
-    userStream ! Conversation(roots, statusMap, repliesTo)
+  private val booted = new AtomicBoolean
 
-  private def message (line: String) = events(line) foreach (self ! _)
+  private def boot = message (twitterSession.homeTimeline)
 
-  private def events (line: String): List[TwitterEvent] =
-    JsonParser parseOpt line match {
-      case Some(array: JArray) =>
-        array.children map (event (_)) filter (_.isDefined) map (_.get)
-      case Some(json: JValue) =>
-        event (json) match {
-          case Some(event) => List(event)
-          case None => Nil
-        }
-      case None =>
-        Nil
+  private var statusMap = Map[BigInt, TwitterStatusUpdate]()
+
+  private var replies = Set[BigInt]()
+
+  private var totalRepliesCount = Map[BigInt, Int]()
+
+  private var repliesTo = Map[BigInt, List[BigInt]]()
+
+  private def hasReplies (id: BigInt) = repliesTo contains id
+
+  private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
+
+  private def message(line: String): Unit = {
+    foreachEvent(line) {
+      self ! _
     }
+  }
 
-  private def event(json: JValue): Option[TwitterEvent] = JsonTransformer (json)
+  private def updateConversation = userStream ! Conversation(roots, statusMap, repliesTo)
 }

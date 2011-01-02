@@ -2,47 +2,68 @@ package vkode.toita.backend
 
 import scalaz.Options
 import akka.actor.{ActorRef, Actor}
-import vkode.toita.comet.{DiagnosticsComet, UserStreamComet}
+import vkode.toita.comet.{FolloweesComet, DiagnosticsComet, UserStreamComet}
 
 class ToitaCentral extends Actor with Options {
 
   override def receive = {
     case CometUp(actor: UserStreamComet) =>
-      dismantle(actor.session.key)
+      userStreams = dismantle(userStreams, actor.session.key)
       setup(actor)
     case CometDown(actor: UserStreamComet) =>
-      dismantle(actor.session.key)
+      userStreams = dismantle(followeeses, actor.session.key)
+    case CometUp(actor: FolloweesComet) =>
+      followeeses = dismantle(followeeses, actor.session.key)
+      setup(actor)
+    case CometDown(actor: FolloweesComet) =>
+      followeeses = dismantle(followeeses, actor.session.key)
     case CometUp(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians :+ diagnostics
     case CometDown(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians filterNot (_ == diagnostics)
-    case DiagnosticsComet.StreamUp => diagnostic(DiagnosticsComet.StreamUp)
-    case DiagnosticsComet.StreamDown => diagnostic(DiagnosticsComet.StreamDown)
-    case DiagnosticsComet.LookupStarted => diagnostic(DiagnosticsComet.LookupStarted)
-    case DiagnosticsComet.LookupEnded => diagnostic(DiagnosticsComet.LookupEnded)
+    case msg: DiagnosticsComet.Timed => diagnostic(msg)
   }
 
   def diagnostic(msg: Any) = diagnosticians foreach (_ ! msg)
 
   var diagnosticians = List[DiagnosticsComet]()
 
-  var sessions = Map[String,ActorRef]()
+  var streamEmitters = Map[String,StreamEmitter]()
 
-  private def dismantle (key: String) =
-    sessions = sessions get key match {
-      case Some(actor) =>
-        actor.stop
-        diagnostic(DiagnosticsComet.StreamDown)
-        sessions - key
-      case None => sessions
-    }
+  var userStreams = Map[String,ActorRef]()
+
+  var followeeses = Map[String,ActorRef]()
+
+  def getEmitter(userStream: ToitaSessionUser) =
+    streamEmitters get (userStream.session.key) getOrElse (new StreamEmitter(new TwitterSession(userStream.session)))
 
   private def setup (userStream: UserStreamComet) {
-    val twitterSession = new TwitterSession(userStream.session)
-    val tracker = (Actor actorOf (new StatusTracker (userStream, twitterSession, self))).start
-    tracker ! StatusTracker.Boot
+    val emitter = getEmitter (userStream)
+    val tracker = (Actor actorOf (new StatusTracker (userStream, emitter.twitterSession, self)))
+    tracker.start
+    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
 
-    diagnostic(DiagnosticsComet.StreamUp)
-    sessions = sessions + (userStream.session.key -> tracker)
+    streamEmitters = streamEmitters + (userStream.session.key -> expandedEmitter)
+    userStreams = userStreams + (userStream.session.key -> tracker)
+
+    tracker ! StatusTracker.Boot
   }
+
+  private def setup (followees: FolloweesComet) {
+    val emitter = getEmitter (followees)
+    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter.twitterSession)))
+    tracker.start
+    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterFriends])
+
+    streamEmitters = streamEmitters + (followees.session.key -> expandedEmitter)
+    followeeses = followeeses + (followees.session.key -> tracker)
+  }
+
+  private def dismantle (m: Map[String,ActorRef], key: String) =
+    m get key match {
+      case Some(actor) =>
+        actor.stop
+        m - key
+      case None => m
+    }
 }

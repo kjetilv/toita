@@ -11,5 +11,6 @@ trait ToitaRegister {
 
   override protected def localShutdown() = broadcast (CometDown(this))
 
-  private def broadcast (msg: Any) = ActorRegistry.actorsFor[ToitaCentral] foreach (_ ! msg)
+  private def broadcast (msg: Any) =
+    ActorRegistry.actorsFor[ToitaCentral] foreach (_ ! msg)
 }

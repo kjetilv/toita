@@ -22,10 +22,13 @@ trait TreeStat[T <: Treeable] {
   def nodeCount: Int
   def latest: Long
   def names: Set[String]
+  def namesBelow: Set[String]
+  def namesOther: Set[String]
   def items: List[ConversationItem[T]]
 }
 
-case class ConversationItem[T <: Treeable](t: T, indent: Int, nodeCount: Int, latest: Long, names: Set[String])
+case class ConversationItem[T <: Treeable](t: T, indent: Int, nodeCount: Int, latest: Long,
+                                           names: Set[String], namesBelow: Set[String], namesOther: Set[String])
     extends TreeStat[T] {
   def items = List(this)
 }
@@ -44,32 +47,42 @@ case class ConversationNode[T <: Treeable](t: T, subnodes: List[ConversationNode
 
   lazy val latest: Long = (t.timestamp :: (subnodes flatMap (_.timestamps)) sortWith (_ > _)) (0)
 
-  lazy val names: Set[String] = (t.name :: (subnodes flatMap (_.names))).toSet
+  lazy val names: Set[String] = namesBelow + t.name
+
+  lazy val namesBelow: Set[String] = (subnodes flatMap (_.names)).toSet
+
+  lazy val namesOther: Set[String] = namesBelow - t.name
 
   lazy val items: List[ConversationItem[T]] =
-    ConversationItem(t, 0, nodeCount, latest, names) :: (subnodes flatMap (_.subItems(1)))
+    toItem(0) :: (subnodes flatMap (_.subItems(1)))
 
   private def subItems(depth: Int): List[ConversationItem[T]] =
-    ConversationItem(t, depth, nodeCount, latest, names) :: (subnodes flatMap (_.subItems(depth + 1)))
+    toItem(depth) :: (subnodes flatMap (_.subItems(depth + 1)))
+
+  private def toItem(depth: Int) = ConversationItem(t, depth, nodeCount, latest, names, namesBelow, namesOther)
 
   private def timestamps: List[Long] = t.timestamp :: (subnodes flatMap (_.timestamps))
 }
 
 case class Tree[T <: Treeable](nodes: List[ConversationNode[T]]) extends TreeStat[T] {
 
-  def nodeCount = nodes match {
+  lazy val nodeCount = nodes match {
     case Nil => 0
     case nodes => nodes map (_.nodeCount) reduceLeft (_ + _)
   }
 
-  def latest = nodes match {
+  lazy val latest = nodes match {
     case Nil => 0
     case nodes => (nodes map (_.latest) sortWith (_ > _)) (0)
   }
 
-  def names = (nodes flatten (_.names)).toSet
+  lazy val names = (nodes flatten (_.names)).toSet
 
-  def items = nodes flatten (_.items)
+  lazy val namesOther = namesBelow
+
+  lazy val namesBelow = names
+
+  lazy val items = nodes flatten (_.items)
 }
 
 case class TreeBuilder[T <: Treeable](roots: List[BigInt],

@@ -39,7 +39,7 @@ trait Indexed {
   def a = indices(0)
   def b = indices(1)
 
-  def sameIndexAs (idx: Indexed) = a == idx.a && b == idx.b
+  def sameAs (idx: Indexed) = a == idx.a && b == idx.b
 
   def before(indexed: Indexed) = a < indexed.b
 }

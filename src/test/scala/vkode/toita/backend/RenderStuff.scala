@@ -5,7 +5,7 @@ import org.junit.{Assert, Test}
 
 class RenderStuff {
 
-  private def render (tsu: TwitterStatusUpdate) = Rendrer render (ConversationItem(tsu, 0, 0, 0, Set[String]()))
+  private def render (tsu: TwitterStatusUpdate) = Rendrer render (ConversationItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]()))
 
   @Test def renderMentionHashes {
     val text = "hey @zip #zot foobar #zip fussball"
@@ -188,7 +188,7 @@ class RenderStuff {
   private def parseAndRender(json: String): Unit = {
     import ParseStuff._
     val event = parse(json).get.asInstanceOf[TwitterStatusUpdate]
-    val nodes = Rendrer render ConversationItem(event, 0, 0, 0, Set[String]())
+    val nodes = Rendrer render ConversationItem(event, 0, 0, 0, Set[String](), Set[String](), Set[String]())
     Assert.assertEquals("Bad render: " + nodes,
                         2, nodes.size)
   }

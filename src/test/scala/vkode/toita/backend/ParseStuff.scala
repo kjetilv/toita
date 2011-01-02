@@ -243,7 +243,7 @@ object ParseStuff {
   def parse(json: Option[JValue]): Option[TwitterEvent] = json match {
     case Some(json: JValue) =>
       println("Recv: " + json)
-      val list = JsonTransformer(json)
+      val list = JsonTransformer getEvent json
       if (list.isEmpty) {
         println ("No hits: " + list)
         None
