@@ -87,5 +87,8 @@ object JsonTransformer extends Logging {
         }),
         "friends" -> (json => {
           extract (json, classOf[TOFriends]) map (TwitterFriends (_))
+        }),
+        "screen_name" -> (json => {
+          extract(json, classOf[TOUser]) map (TwitterFriend(_))
         }))
 }

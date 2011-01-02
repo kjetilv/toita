@@ -10,10 +10,9 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
 
   def homeTimeline = message(twitterSession.homeTimeline)
 
-  def users(ids: List[BigInt]) =
-    ids.sliding(25, 25) foreach (window => { message(twitterSession getFriends window) })
+  def users(ids: List[BigInt]) = ids.sliding(25, 25) foreach (window => { message(twitterSession getFriends window) })
 
-  def status(id: BigInt) = message(twitterSession.lookup(id))
+  def status(id: BigInt) = message(twitterSession lookup id)
 
   def addReceiver(ref: ActorRef, types: Class[_]*) {
     receivers = (receivers /: types) ((m, t) => {
