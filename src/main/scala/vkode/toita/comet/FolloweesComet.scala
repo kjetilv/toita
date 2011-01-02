@@ -13,7 +13,10 @@ class FolloweesComet
                      "list" -> renderFriends)
 
   override def lowPriority = {
-    case list: List[BigInt] => ids = list
+    case list: List[BigInt] => {
+      ids = list
+      rerenderFriends
+    }
   }
 
   private var ids: List[BigInt] = Nil

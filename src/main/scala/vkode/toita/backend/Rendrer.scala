@@ -46,10 +46,10 @@ object Rendrer {
         val arrows = (1 to indent).toList.map(x => <span>&#8618;</span>)
         val spaces = (1 to indent).toList.map(x => <span>&nbsp;&nbsp;</span>)
         List(<tr>
-               <td width="50">
+               <td width="20" align="right">
                  { spaces } { img(imageUrl, math.max(12, 48 - (indent * 8))) }
                </td>
-               <td width="300">
+               <td width="200" valign="top">
                  { arrows :+ textOf(item.t) }
                </td>
              </tr>,
@@ -102,9 +102,9 @@ object Rendrer {
 
   def computeTextIndices (text: String, indexed: List[Indexed], inserts: List[Insert]): List[(Int, Int)] =
     indexed match {
-      case Nil => List(0 -> text.length)
+      case Nil => List(0 → text.length)
       case single :: Nil =>
-        List((0 -> single.a), (single.b -> text.length))
+        List((0 → single.a), (single.b → text.length))
       case indexed => prefixed(text,
                                inserts,
                                suffixed(text,
@@ -140,7 +140,7 @@ object Rendrer {
   }
 
   private def resolveEntities(replyIndex: Option[TOMention], indices: List[Indexed]) =
-    (replyIndex -> indices) match {
+    (replyIndex → indices) match {
       case (None, indices) =>
         indices
       case (Some(reply), indices) => if (indices exists (_ sameAs reply)) indices else reply :: indices
