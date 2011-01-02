@@ -21,10 +21,13 @@ class StreamEmitter(val twitterSession: TwitterSession, required: Class[_]*)
       val set = m getOrElse (t, Set())
       m + (t -> (set + ref))
     })
+    startStream
     this
   }
 
-  def startStream =
+  def close = twitterStream.close
+
+  private def startStream =
     if (requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true))
       Actor spawn {
         try {

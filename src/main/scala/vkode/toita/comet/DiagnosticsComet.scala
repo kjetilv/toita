@@ -12,13 +12,13 @@ object DiagnosticsComet {
     def timestamp: Long = System.currentTimeMillis
   }
 
-  case class StreamUp extends Timed
+  case object StreamUp extends Timed
 
-  case class StreamDown extends Timed
+  case object StreamDown extends Timed
 
-  case class LookupStarted extends Timed
+  case object LookupStarted extends Timed
 
-  case class LookupEnded extends Timed
+  case object LookupEnded extends Timed
 }
 
 class DiagnosticsComet extends CometActor with ToitaRegister {

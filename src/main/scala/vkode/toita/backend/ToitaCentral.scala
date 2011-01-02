@@ -22,6 +22,8 @@ class ToitaCentral extends Actor with Options {
     case CometDown(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians filterNot (_ == diagnostics)
     case msg: DiagnosticsComet.Timed => diagnostic(msg)
+    case x =>
+      log.warn("Unhandled: " + x)
   }
 
   def diagnostic(msg: Any) = diagnosticians foreach (_ ! msg)
@@ -35,7 +37,7 @@ class ToitaCentral extends Actor with Options {
   var followeeses = Map[String,ActorRef]()
 
   def getEmitter(userStream: ToitaSessionUser) =
-    streamEmitters get (userStream.session.key) getOrElse (new StreamEmitter(new TwitterSession(userStream.session)))
+    streamEmitters get (userStream.session.key) getOrElse (new StreamEmitter(new TwitterSession(userStream.session), classOf[TwitterFriends]))
 
   private def setup (userStream: UserStreamComet) {
     val emitter = getEmitter (userStream)
