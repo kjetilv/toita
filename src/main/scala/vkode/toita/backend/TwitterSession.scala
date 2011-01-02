@@ -59,8 +59,9 @@ class TwitterSession (userSession: UserSession) extends Options {
 
   def lookup(url: String): String = doWithURL (url, getStrings(_))
 
-  def stream(url: String): TwitterStream =
-    doWithURL (url, getStream(_))
+  def getFriends(ids: List[BigInt]) = lookup("http://api.twitter.com/1/users/lookup.json?user_id=" + (ids mkString ","))
+
+  def stream(url: String): TwitterStream = doWithURL (url, getStream(_))
 
   private def getStream(inputStream: InputStream) = TwitterStream (lineIterator(inputStream), inputStream)
 

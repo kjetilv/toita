@@ -6,23 +6,17 @@ import akka.actor.{ActorRef, Actor}
 import vkode.toita.comet.DiagnosticsComet
 import akka.util.Logging
 
-object StatusTracker {
-  case object Boot
-}
 
 class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, diagnostics: ActorRef)
     extends Actor with Logging with JsonEvents {
 
   def receive = {
-    case StatusTracker.Boot => boot
     case TwitterStatusDelete(TOStatusRef(id, _)) =>
       statusMap = statusMap get id match {
         case None => statusMap
         case Some(tsu) => statusMap + (id -> tsu.copy(deleted = true))
       }
       updateConversation
-    case TwitterFriends(TOFriends(ids)) =>
-      log.info("Friends: " + ids.mkString(" "))
     case statusUpdate: TwitterStatusUpdate =>
       val id = statusUpdate.id
       if (statusMap contains id) {
@@ -44,10 +38,6 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
         updateConversation
       }
   }
-
-  private val booted = new AtomicBoolean
-
-  private def boot = message (twitterSession.homeTimeline)
 
   private var statusMap = Map[BigInt, TwitterStatusUpdate]()
 

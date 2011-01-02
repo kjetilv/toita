@@ -6,6 +6,8 @@ abstract sealed class TwitterEvent(time: DateTime = new DateTime)
 
 case class TwitterFriends(friends: TOFriends) extends TwitterEvent
 
+case class TwitterFriend(friends: TOUser) extends TwitterEvent
+
 case class TwitterStatusDelete(status: TOStatusRef) extends TwitterEvent
 
 case class TwitterStatusUpdate(status: TOStatus,

@@ -9,20 +9,31 @@ trait JsonEvents {
 
   protected def events (line: String): List[TwitterEvent] =
     JsonParser parseOpt line match {
-      case Some(array: JArray) =>
-        array.children map (event (_)) filter (_.isDefined) map (_.get)
-      case Some(json: JValue) =>
-        event (json) match {
-          case Some(event) => List(event)
-          case None => Nil
-        }
-      case None =>
-        Nil
+      case Some(array: JArray) => array.children flatMap (event (_))
+      case Some(json: JValue) => event (json)
+      case None => Nil
     }
 
-  private def event(json: JValue): Option[TwitterEvent] = json match {
-    case JNull => None
-    case JNothing => None
-    case json => JsonTransformer.getEvent(json)
+  private def user(tsu: TwitterStatusUpdate): List[TwitterEvent] =
+    tsu.user map (user => List(TwitterFriend(user))) getOrElse Nil
+
+  private def retweetedUser(tsu: TwitterStatusUpdate): List[TwitterEvent] =
+    tsu.retweeted map (tsu => user(tsu)) getOrElse Nil
+
+  private def event(json: JValue): List[TwitterEvent] = json match {
+    case JNull => Nil
+    case JNothing => Nil
+    case json => {
+      JsonTransformer getEvent json match {
+        case None => Nil
+        case Some(event) =>
+          List(event) ++ (if (event.isInstanceOf[TwitterStatusUpdate]) {
+            val tsu = event.asInstanceOf[TwitterStatusUpdate]
+            user(tsu) ++ retweetedUser (tsu)
+          } else {
+            Nil
+          })
+      }
+    }
   }
 }

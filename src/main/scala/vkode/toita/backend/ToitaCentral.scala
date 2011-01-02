@@ -47,15 +47,13 @@ class ToitaCentral extends Actor with Options {
 
     streamEmitters = streamEmitters + (userStream.session.key -> expandedEmitter)
     userStreams = userStreams + (userStream.session.key -> tracker)
-
-    tracker ! StatusTracker.Boot
   }
 
   private def setup (followees: FolloweesComet) {
     val emitter = getEmitter (followees)
-    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter.twitterSession)))
+    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter.twitterSession, self)))
     tracker.start
-    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterFriends])
+    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterFriends], classOf[TwitterFriend])
 
     streamEmitters = streamEmitters + (followees.session.key -> expandedEmitter)
     followeeses = followeeses + (followees.session.key -> tracker)

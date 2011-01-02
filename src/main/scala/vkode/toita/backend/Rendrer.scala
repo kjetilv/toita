@@ -36,6 +36,9 @@ object Rendrer {
       }
     }
 
+  def renderSmall(user: TOUser) =
+    <span><img src={user.profile_image_url} height="12" width="12"/> {user.screen_name}</span>
+
   def render(item: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
     item match {
       case ConversationItem(TwitterStatusUpdate(status, meta,
