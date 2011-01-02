@@ -29,7 +29,7 @@ class UserStreamComet
 
   def renderTable: NodeSeq =
     try {
-      conversation map (conv => Rendrer render (conv.items take 100)) getOrElse <span>Waiting for conversation...</span>
+      conversation map (conv => Rendrer render (conv.items take 250)) getOrElse <span>Waiting for conversation...</span>
     } catch {
       case e =>
         logger.warn("Failed to render table!", e)

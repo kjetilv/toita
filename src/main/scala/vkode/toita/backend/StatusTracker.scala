@@ -1,14 +1,11 @@
 package vkode.toita.backend
 
 import net.liftweb.http.CometActor
-import java.util.concurrent.atomic.AtomicBoolean
-import akka.actor.{ActorRef, Actor}
-import vkode.toita.comet.DiagnosticsComet
+import akka.actor.Actor
 import akka.util.Logging
 
-
-class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, diagnostics: ActorRef)
-    extends Actor with Logging with JsonEvents {
+class StatusTracker (userStream: CometActor, twitterService: TwitterService)
+    extends Actor with Logging {
 
   def receive = {
     case TwitterStatusDelete(TOStatusRef(id, _)) =>
@@ -27,12 +24,7 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
           replies = replies + id
           repliesTo = repliesTo + (repliedTo -> (id :: (repliesTo get repliedTo getOrElse Nil)))
           if (!(statusMap contains repliedTo)) {
-            Actor spawn {
-              diagnostics ! DiagnosticsComet.LookupStarted
-              val s = twitterSession lookup repliedTo
-              diagnostics ! DiagnosticsComet.LookupEnded
-              message (s)
-            }
+            twitterService status repliedTo
           }
         })
         updateConversation
@@ -50,12 +42,6 @@ class StatusTracker (userStream: CometActor, twitterSession: TwitterSession, dia
   private def hasReplies (id: BigInt) = repliesTo contains id
 
   private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
-
-  private def message(line: String): Unit = {
-    foreachEvent(line) {
-      self ! _
-    }
-  }
 
   private def updateConversation = userStream ! Conversation(roots, statusMap, repliesTo)
 }

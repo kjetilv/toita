@@ -5,8 +5,29 @@ import java.io.IOException
 import akka.util.Logging
 import java.util.concurrent.atomic.AtomicBoolean
 
-class StreamEmitter(val twitterSession: TwitterSession, required: Class[_]*)
-    extends Logging with JsonEvents {
+class StreamEmitter(userSession: UserSession, required: Class[_]*)
+    extends Logging with JsonEvents with TwitterService {
+
+  def homeTimeline = message(twitterSession.homeTimeline)
+
+  def users(ids: List[BigInt]) =
+    ids.sliding(25, 25) foreach (window => { message(twitterSession getFriends window) })
+
+  def status(id: BigInt) = message(twitterSession.lookup(id))
+
+  def addReceiver(ref: ActorRef, types: Class[_]*) {
+    receivers = (receivers /: types) ((m, t) => {
+      val set = m getOrElse (t, Set())
+      m + (t -> (set + ref))
+    })
+    if (shouldStartStream) {
+      startStream
+    }
+  }
+
+  def close = twitterStream.close
+
+  private val twitterSession= new TwitterSession(userSession)
 
   private val requiredClasses = required.toSet[Class[_]]
 
@@ -16,30 +37,21 @@ class StreamEmitter(val twitterSession: TwitterSession, required: Class[_]*)
 
   private var receivers: Map[Class[_], Set[ActorRef]] = Map()
 
-  def withReceiver(ref: ActorRef, types: Class[_]*): StreamEmitter = {
-    receivers = (receivers /: types) ((m, t) => {
-      val set = m getOrElse (t, Set())
-      m + (t -> (set + ref))
-    })
-    startStream
-    this
-  }
-
-  def close = twitterStream.close
+  private def shouldStartStream =
+      !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
 
   private def startStream =
-    if (requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true))
-      Actor spawn {
-        message (twitterSession.homeTimeline)
-        try {
-          for (line <- twitterStream) message (line)
-        } catch {
-          case e: IOException =>
-            log.info(this + " done", e)
-        } finally {
-          twitterStream.close
-        }
+    Actor spawn {
+      message (twitterSession.homeTimeline)
+      try {
+        for (line <- twitterStream) message (line)
+      } catch {
+        case e: IOException =>
+          log.info(this + " done", e)
+      } finally {
+        twitterStream.close
       }
+    }
 
   private def message (line: String) = events(line) groupBy (_.getClass) foreach (_ match {
     case (eventType, events) => ship(eventType, events)

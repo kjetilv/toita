@@ -36,26 +36,28 @@ class ToitaCentral extends Actor with Options {
 
   var followeeses = Map[String,ActorRef]()
 
-  def getEmitter(userStream: ToitaSessionUser) =
-    streamEmitters get (userStream.session.key) getOrElse (new StreamEmitter(new TwitterSession(userStream.session), classOf[TwitterFriends]))
+  def getEmitter(userStream: ToitaSessionUser) = {
+    val session = userStream.session
+    streamEmitters get (session.key) getOrElse (new StreamEmitter(session, classOf[TwitterFriends]))
+  }
 
   private def setup (userStream: UserStreamComet) {
     val emitter = getEmitter (userStream)
-    val tracker = (Actor actorOf (new StatusTracker (userStream, emitter.twitterSession, self)))
+    val tracker = (Actor actorOf (new StatusTracker (userStream, emitter)))
+    emitter.addReceiver (tracker, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
     tracker.start
-    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
 
-    streamEmitters = streamEmitters + (userStream.session.key -> expandedEmitter)
+    streamEmitters = streamEmitters + (userStream.session.key -> emitter)
     userStreams = userStreams + (userStream.session.key -> tracker)
   }
 
   private def setup (followees: FolloweesComet) {
     val emitter = getEmitter (followees)
-    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter.twitterSession, self)))
+    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter)))
+    emitter.addReceiver (tracker, classOf[TwitterFriends], classOf[TwitterFriend])
     tracker.start
-    val expandedEmitter = emitter.withReceiver (tracker, classOf[TwitterFriends], classOf[TwitterFriend])
 
-    streamEmitters = streamEmitters + (followees.session.key -> expandedEmitter)
+    streamEmitters = streamEmitters + (followees.session.key -> emitter)
     followeeses = followeeses + (followees.session.key -> tracker)
   }
 

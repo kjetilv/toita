@@ -2,21 +2,13 @@ package vkode.toita.backend
 
 import net.liftweb.http.CometActor
 import akka.util.Logging
-import akka.actor.{ActorRef, Actor}
-import vkode.toita.comet.DiagnosticsComet.{LookupEnded, LookupStarted}
+import akka.actor.Actor
 
-class FollowerTracker (followees: CometActor, twitterSession: TwitterSession, diagnostics: ActorRef)
-    extends Actor with Logging with JsonEvents {
-
-  private def retrieveUsers(ids: List[BigInt]) = ids.sliding(25, 25) foreach { window =>
-    foreachEvent (twitterSession getFriends window) { user =>
-      diagnostics ! LookupStarted
-      followees ! user
-      diagnostics ! LookupEnded }
-  }
+class FollowerTracker (followees: CometActor, twitterSession: TwitterService)
+    extends Actor with Logging {
 
   protected def receive = {
-    case TwitterFriends(TOFriends(list)) => retrieveUsers(list)
+    case TwitterFriends(TOFriends(list)) => twitterSession users list
     case TwitterFriend(user) => followees ! user
   }
 }
