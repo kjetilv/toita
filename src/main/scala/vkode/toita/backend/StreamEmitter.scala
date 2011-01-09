@@ -6,6 +6,7 @@ import akka.util.Logging
 import java.util.concurrent.atomic.AtomicBoolean
 import net.liftweb.json.JsonParser
 import net.liftweb.json.JsonAST.{JNothing, JNull, JArray, JValue}
+import reflect.{ClassManifest, Manifest}
 
 object StreamEmitter {
 
@@ -18,7 +19,14 @@ object StreamEmitter {
 }
 
 class StreamEmitter(userSession: UserSession, required: Class[_]*)
-    extends Logging with TwitterAsynchService {
+    extends Logging
+            with TwitterAsynchService
+            with TwitterService {
+
+  def user = events(twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
+    case (tweet: TwitterStatusUpdate) :: _ => tweet.user
+    case _ => None
+  }
 
   def homeTimeline = message(twitterSession.homeTimeline)
 
@@ -89,10 +97,10 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
       case None => Nil
     }
 
-  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterEvent] =
+  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
     tsu.user map (user => List(TwitterFriend(user, json))) getOrElse Nil
 
-  private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterEvent] =
+  private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
     tsu.retweeted map (tsu => user(tsu, json)) getOrElse Nil
 
   private def event(json: JValue): List[TwitterEvent] = json match {
@@ -100,15 +108,16 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
     case JNothing => Nil
     case json => {
       JsonTransformer getEvent json match {
-        case None => Nil
+        case None =>
+          Nil
         case Some(event) =>
-          List(event) ++ (if (event.isInstanceOf[TwitterStatusUpdate]) {
-            val tsu = event.asInstanceOf[TwitterStatusUpdate]
-            user(tsu, json) ++ retweetedUser (tsu, json)
-          } else {
-            Nil
-          })
+          List(event) ++ (if (event.isInstanceOf[TwitterStatusUpdate]) bothEvents(event, json) else Nil)
       }
     }
+  }
+
+  def bothEvents[T <: TwitterEvent](event: TwitterEvent, json: JValue): List[TwitterEvent] = {
+    val tsu = event.asInstanceOf[TwitterStatusUpdate]
+    user(tsu, json) ++ retweetedUser(tsu, json)
   }
 }

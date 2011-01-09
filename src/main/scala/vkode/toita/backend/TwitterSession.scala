@@ -52,8 +52,11 @@ class TwitterSession (userSession: UserSession) extends Options {
   def lookup(id: BigInt): String =
     lookup ("http://api.twitter.com/1/statuses/show/" + id + ".json?include_entities=true")
 
+  def latestUserTimeline =
+    lookup ("http://api.twitter.com/1/statuses/user_timeline.json?count=1&include_entities=true")
+
   def homeTimeline =
-    lookup ("http://api.twitter.com/1/statuses/home_timeline.json?count=10&include_entities=true")
+    lookup ("http://api.twitter.com/1/statuses/home_timeline.json?count=8&include_entities=true")
 
   def userStream = stream ("https://userstream.twitter.com/2/user.json")
 
