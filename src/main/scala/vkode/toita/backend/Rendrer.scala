@@ -42,8 +42,8 @@ object Rendrer {
   def render(item: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
     item match {
       case ConversationItem(TwitterStatusUpdate(status, meta,
-                                                Some(TOUser(_, screen_name, name, _, _, imageUrl)),
-                                                retweeted, entities, reply, deleted),
+                                                Some(TOUser(_, screen_name, name, _, _, _, imageUrl)),
+                                                retweeted, entities, reply, deleted, json),
                             indent,
                             _, _, _, _, _) =>
         val arrows = (1 to indent).toList.map(x => <span>&#8618;</span>)
@@ -53,7 +53,7 @@ object Rendrer {
                  { spaces } { img(imageUrl, math.max(12, 48 - (indent * 8))) }
                </td>
                <td width="200" valign="top">
-                 { arrows :+ textOf(item.t) }
+                 { arrows :+ textOf(retweeted getOrElse item.t) }
                </td>
              </tr>,
              <tr>
@@ -64,7 +64,8 @@ object Rendrer {
                  case Some(TwitterStatusUpdate
                                (TOStatus(id, _),
                                 TOMeta(_, _, _, _, _, date, _),
-                                Some(TOUser(_, screen_name, name, _, _, _)),
+                                Some(TOUser(_, screen_name, name, _, _, _, _)),
+                                _,
                                 _,
                                 _,
                                 _,
@@ -115,10 +116,14 @@ object Rendrer {
                                         indexed map (_.b) zip (indexed.tail map (_.a))))
     }
 
-  private def nodes(status: TOStatus, reply: Option[TOReply], indexeds: List[Indexed]*): List[NodeSeq] =
+  private def nodes(status: TOStatus,
+                    reply: Option[TOReply],
+                    indexeds: List[Indexed]*): List[NodeSeq] =
     inserts(status, reply, indexeds: _*) map (_.node)
 
-  private def inserts(status: TOStatus, reply: Option[TOReply], indexeds: List[Indexed]*): List[Insert] = {
+  private def inserts(status: TOStatus,
+                      reply: Option[TOReply],
+                      indexeds: List[Indexed]*): List[Insert] = {
     val entityIndices = (List[Indexed]() /: indexeds) (_ ++ _) sortWith (_ before _)
     val replyIndex = indexed(reply, status.text)
     val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert _)
@@ -127,15 +132,17 @@ object Rendrer {
     (entityInserts ++ textInserts) sortWith (_ before _)
   }
 
-  private def textOf(tsu: TwitterStatusUpdate): Elem = {
-    tsu match {
-      case TwitterStatusUpdate(status, meta, usr, _, TOEntities(hashtags, mentions, urls), reply, deleted) =>
-        <span>
-          { user(usr) :: (nodes(status, reply, hashtags, mentions, urls) :+ (if (deleted) <span>[DELETED]</span> else <span/>))}
-        </span>
-      case _ => <span/>
-    }
-  }
+  def deleteFlag(deleted: Boolean): Elem = (if (deleted) <span>[DELETED]</span> else <span/>)
+
+  private def textOf(tsu: TwitterStatusUpdate): Elem =
+    <span> {
+      tsu match {
+        case TwitterStatusUpdate(status, meta, usr, _, TOEntities(hashtags, mentions, urls), reply, deleted, _) =>
+          user(usr) :: (nodes(status, reply, hashtags, mentions, urls) :+ deleteFlag(deleted))
+        case _ => <span/>
+      }
+      }
+    </span>
 
   private def user(usr: Option[TOUser]) = usr match {
     case Some(usr) => <strong>{ usr.screen_name } </strong>

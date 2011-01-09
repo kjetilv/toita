@@ -79,16 +79,19 @@ object JsonTransformer extends Logging {
         val urls = entities("urls", json, classOf[TOURL])
         val reply = extract (json, classOf[TOReply])
         val toEntities = TOEntities(hashtags, mentions, urls)
-        TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply)
+        TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply, false, json)
       })
     }),
         "delete" -> (json => {
-          extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_))
+          extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_, json))
         }),
         "friends" -> (json => {
-          extract (json, classOf[TOFriends]) map (TwitterFriends (_))
+          extract (json, classOf[TOFriends]) map (TwitterFriends (_, json))
         }),
         "screen_name" -> (json => {
-          extract(json, classOf[TOUser]) map (TwitterFriend(_))
+          extract(json, classOf[TOUser]) map (TwitterFriend(_, json))
+        }),
+        "event" -> (json => {
+          extract(json, classOf[TOFollowEvent]) map (TwitterFollower(_, json))
         }))
 }

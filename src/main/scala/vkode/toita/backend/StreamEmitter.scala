@@ -4,9 +4,21 @@ import akka.actor.{ActorRef, Actor}
 import java.io.IOException
 import akka.util.Logging
 import java.util.concurrent.atomic.AtomicBoolean
+import net.liftweb.json.JsonParser
+import net.liftweb.json.JsonAST.{JNothing, JNull, JArray, JValue}
+
+object StreamEmitter {
+
+  import scala.collection.mutable._
+
+  val streamEmitters: Map[UserSession,StreamEmitter] =
+    new HashMap[UserSession,StreamEmitter] with SynchronizedMap[UserSession,StreamEmitter]
+
+  def apply(session: UserSession) = streamEmitters getOrElseUpdate (session, new StreamEmitter (session))
+}
 
 class StreamEmitter(userSession: UserSession, required: Class[_]*)
-    extends Logging with JsonEvents with TwitterService {
+    extends Logging with TwitterAsynchService {
 
   def homeTimeline = message(twitterSession.homeTimeline)
 
@@ -37,7 +49,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
   private var receivers: Map[Class[_], Set[ActorRef]] = Map()
 
   private def shouldStartStream =
-      !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
+    !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
 
   private def startStream =
     Actor spawn {
@@ -66,5 +78,37 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
 
   private def ship(receivers: Set[ActorRef], events: List[TwitterEvent]) {
     receivers foreach (receiver => events foreach (receiver ! _))
+  }
+
+  private def foreachEvent (line: String) (fun: TwitterEvent => Unit) = events (line) foreach (fun (_))
+
+  private def events (line: String): List[TwitterEvent] =
+    JsonParser parseOpt line match {
+      case Some(array: JArray) => array.children flatMap (event (_))
+      case Some(json: JValue) => event (json)
+      case None => Nil
+    }
+
+  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterEvent] =
+    tsu.user map (user => List(TwitterFriend(user, json))) getOrElse Nil
+
+  private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterEvent] =
+    tsu.retweeted map (tsu => user(tsu, json)) getOrElse Nil
+
+  private def event(json: JValue): List[TwitterEvent] = json match {
+    case JNull => Nil
+    case JNothing => Nil
+    case json => {
+      JsonTransformer getEvent json match {
+        case None => Nil
+        case Some(event) =>
+          List(event) ++ (if (event.isInstanceOf[TwitterStatusUpdate]) {
+            val tsu = event.asInstanceOf[TwitterStatusUpdate]
+            user(tsu, json) ++ retweetedUser (tsu, json)
+          } else {
+            Nil
+          })
+      }
+    }
   }
 }

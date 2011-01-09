@@ -22,12 +22,11 @@ class Boot {
 
   def boot {
     LiftRules.addToPackages("vkode.toita")
+     LiftRules.htmlProperties.default set ((r: Req) => new Html5Properties(r.userAgent))
 
     // Build SiteMap
-    def sitemap() = SiteMap(
-      Menu("Home") / "index" :: // Simple menu form
-      Menu("Me") / "me" :: // Simple menu form
-        Nil :_*)
+    def sitemap() = SiteMap(Menu("Home") / "index",
+                            Menu("User") / "user")
 
     LiftRules.setSiteMapFunc(sitemap)
 

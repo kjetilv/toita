@@ -67,6 +67,12 @@ case class TOUser(id: BigInt,
                   screen_name: String,
                   name: String,
                   lang: Option[String],
+                  description: Option[String],
                   statuses_count: Long,
                   profile_image_url: String)
 
+
+case class TOFollowEvent(target: TOUser,
+                         source: TOUser,
+                         event: String,
+                         created_at: Date)

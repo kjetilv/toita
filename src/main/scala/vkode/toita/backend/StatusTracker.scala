@@ -4,11 +4,11 @@ import net.liftweb.http.CometActor
 import akka.actor.Actor
 import akka.util.Logging
 
-class StatusTracker (userStream: CometActor, twitterService: TwitterService)
+class StatusTracker (userStream: CometActor, twitterService: TwitterAsynchService)
     extends Actor with Logging {
 
   def receive = {
-    case TwitterStatusDelete(TOStatusRef(id, _)) =>
+    case TwitterStatusDelete(TOStatusRef(id, _), _) =>
       statusMap = statusMap get id match {
         case None => statusMap
         case Some(tsu) => statusMap + (id -> tsu.copy(deleted = true))

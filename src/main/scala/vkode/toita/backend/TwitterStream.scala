@@ -4,7 +4,8 @@ import java.io.InputStream
 import akka.util.Logging
 
 case class TwitterStream(private val stream: Iterator[String],
-                         private val source: InputStream) extends Logging with Iterator[String] {
+                         private val source: InputStream)
+    extends Logging with Iterator[String] {
 
   def next() = stream.next
 

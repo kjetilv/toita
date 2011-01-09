@@ -9,7 +9,7 @@ import vkode.toita.backend._
 import net.liftweb.http.js.JsCmds._
 import java.util.Date
 import scalaz.Options
-import org.joda.time.{Duration, DateTime}
+import org.joda.time.DateTime
 
 class UserStreamComet
     extends CometActor with Options with ToitaRegister with ToitaSessionUser with Loggable {

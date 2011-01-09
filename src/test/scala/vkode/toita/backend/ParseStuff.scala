@@ -249,7 +249,7 @@ object ParseStuff {
         None
       } else
         list map (_ match {
-          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, _) =>
+          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json) =>
             println("OK: " + status)
             println("  : " + meta)
             println("  : " + user)
@@ -258,10 +258,10 @@ object ParseStuff {
             println("  : " + mentions)
             println("  : " + hashtags)
             println("  : " + reply)
-            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply))
-          case TwitterStatusDelete (statusRef) =>
+            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json))
+          case TwitterStatusDelete (statusRef, json) =>
             println("Deleted: " + statusRef)
-            Some (TwitterStatusDelete (statusRef))
+            Some (TwitterStatusDelete (statusRef, json))
           case event: TwitterEvent =>
             println("Unhandled: " + event)
             None
@@ -444,7 +444,7 @@ class ParseStuff {
 
   @Test def parseRTAndTag {
     parse (rt_tag) map (_ match {
-      case TwitterStatusUpdate(status, _, _, _, _, _, _) =>
+      case TwitterStatusUpdate(status, _, _, _, _, _, _, _) =>
         Assert.assertEquals(BigInt(1538354965381120L), status.id)
       case x => Assert.fail("Not parsed: " + x)
     })

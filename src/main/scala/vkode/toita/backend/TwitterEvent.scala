@@ -1,14 +1,26 @@
 package vkode.toita.backend
 
 import org.joda.time.DateTime
+import net.liftweb.json.JsonAST.JValue
 
-abstract sealed class TwitterEvent(time: DateTime = new DateTime)
+abstract sealed class TwitterEvent {
 
-case class TwitterFriends(friends: TOFriends) extends TwitterEvent
+  val time: DateTime = new DateTime
 
-case class TwitterFriend(friends: TOUser) extends TwitterEvent
+  val json: JValue
+}
 
-case class TwitterStatusDelete(status: TOStatusRef) extends TwitterEvent
+case class TwitterFriends(friends: TOFriends,
+                          override val json: JValue) extends TwitterEvent
+
+case class TwitterFriend(friend: TOUser,
+                         override val json: JValue) extends TwitterEvent
+
+case class TwitterFollower(event: TOFollowEvent,
+                           override val json: JValue) extends TwitterEvent
+
+case class TwitterStatusDelete(status: TOStatusRef,
+                               override val json: JValue) extends TwitterEvent
 
 case class TwitterStatusUpdate(status: TOStatus,
                                meta: TOMeta,
@@ -16,7 +28,8 @@ case class TwitterStatusUpdate(status: TOStatus,
                                retweeted: Option[TwitterStatusUpdate],
                                entities: TOEntities,
                                reply: Option[TOReply],
-                               deleted: Boolean = false)
+                               deleted: Boolean,
+                               override val json: JValue)
     extends TwitterEvent with Treeable {
 
   def name = user map (_.screen_name) getOrElse "anonymous"

@@ -2,6 +2,7 @@ package vkode.toita.backend
 
 import java.util.Date
 import org.junit.{Assert, Test}
+import net.liftweb.json.JsonAST.JNothing
 
 class RenderStuff {
 
@@ -24,6 +25,7 @@ class RenderStuff {
                                                      "me",
                                                      "Me",
                                                      Some("en"),
+                                                     Some("'scription"),
                                                      10,
                                                      "http://www.vg.no")),
                                          None,
@@ -31,7 +33,9 @@ class RenderStuff {
                                                          TOHashtag(List(hIdx2, hIdx2 + 4), "#zip")),
                                                     List(TOMention(10, "zip", "Zip", List(atIdx + 1, atIdx + 4))),
                                                     Nil),
-                                         None))
+                                         None,
+                                         false,
+                                         JNothing))
     println(tsu)
   }
 
@@ -48,13 +52,16 @@ class RenderStuff {
                                                      "me",
                                                      "Me",
                                                      Some("en"),
+                                                     None,
                                                      10,
                                                      "http://www.vg.no")),
                                          None,
                                          TOEntities(Nil,
                                                     Nil,
                                                     Nil),
-                                         None))
+                                         None,
+                                         false,
+                                         JNothing))
   }
 
   @Test def renderReply {
@@ -70,13 +77,16 @@ class RenderStuff {
                                                      "me",
                                                      "Me",
                                                      Some("en"),
+                                                     None,
                                                      10,
                                                      "http://www.vg.no")),
                                          None,
                                          TOEntities(Nil,
                                                     Nil,
                                                     Nil),
-                                         None))
+                                         None,
+                                         false,
+                                         JNothing))
     println(tsu)
   }
 
@@ -94,6 +104,7 @@ class RenderStuff {
                                                      "Madsws",
                                                      "Mads Wam Schneider",
                                                      Some("en"),
+                                                     None,
                                                      13623,
                                                      "http://a2.twimg.com/profile_images/1097295142/Madsws_normal.jpeg")),
                                          None,
@@ -106,7 +117,9 @@ class RenderStuff {
                                                                    "Olvew",
                                                                    List(119, 125))),
                                                     List()),
-                                         Some(TOReply(BigInt("16479574028197888", 10),9550672, "CiViX"))))
+                                         Some(TOReply(BigInt("16479574028197888", 10),9550672, "CiViX")),
+                                         false,
+                                         JNothing))
     println(tsu)
   }
 
@@ -124,13 +137,16 @@ class RenderStuff {
                                                      "sigvei",
                                                      "Sigve Indregard",
                                                      Some("en"),
+                                                     None,
                                                      2257,
                                                      "http://a3.twimg.com/profile_images/1128768899/41411_861520108_1603_n_normal.jpg")),
                                          None,
                                          TOEntities(List(),
                                                     List(),
                                                     List(TOURL(List(23, 43),"http://bit.ly/giVQdm"))),
-                                         Some(TOReply(null,null,null))))
+                                         Some(TOReply(null,null,null)),
+                                         false,
+                                         JNothing))
     println (tsu)
   }
 
@@ -149,13 +165,16 @@ class RenderStuff {
                                                      "me",
                                                      "Me",
                                                      Some("en"),
+                                                     None,
                                                      10,
                                                      "http://www.vg.no")),
                                          None,
                                          TOEntities(Nil,
                                                     List(TOMention(10, "zip", "Zip", List(atIdx + 1, atIdx + 4))),
                                                     Nil),
-                                         None))
+                                         None,
+                                         false,
+                                         JNothing))
     println(tsu)
   }
 
@@ -173,6 +192,7 @@ class RenderStuff {
                                                      "sjetilv",
                                                      "Sjetil Wahlstavehd",
                                                      Some("en"),
+                                                     None,
                                                      9646,
                                                      """http://a3.twimg.com/profile_images/610112767/Screen_shot_2009-10-29_at_15.25.06_normal.png""")),
                                          None,
@@ -181,7 +201,9 @@ class RenderStuff {
                                                     List()),
                                          Some(TOReply(BigInt("16450228211154944", 10),
                                                       BigInt("14276602", 10),
-                                                      "hogrim"))))
+                                                      "hogrim")),
+                                         false,
+                                         JNothing))
     println (tsu)
   }
 

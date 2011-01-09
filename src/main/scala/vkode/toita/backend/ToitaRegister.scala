@@ -1,6 +1,6 @@
 package vkode.toita.backend
 
-import akka.actor.ActorRegistry
+import akka.actor.Actors._
 import net.liftweb.http.CometActor
 
 trait ToitaRegister {
@@ -12,5 +12,5 @@ trait ToitaRegister {
   override protected def localShutdown() = broadcast (CometDown(this))
 
   private def broadcast (msg: Any) =
-    ActorRegistry.actorsFor[ToitaCentral] foreach (_ ! msg)
+    registry.actorsFor[ToitaCentral] foreach (_ ! msg)
 }

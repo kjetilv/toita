@@ -1,6 +1,6 @@
 <lift:surround with="default" at="content">
   <lift:with-param name="followees">
-    <lift:comet type="FolloweesComet" name="FolloweesComet">
+    <lift:comet type="FollowedComet" name="FollowedComet">
       <f:list/>
     </lift:comet>
   </lift:with-param>
@@ -13,6 +13,9 @@
   </lift:comet>
   </lift:with-param>
   <div>
+    <!--<lift:selectTweets>-->
+      <!--<lift:next/> <lift:previous/>-->
+    <!--</lift:selectTweets>-->
     <lift:comet type="UserStreamComet" name="UserStream">
       <us:tweets>No data received yet</us:tweets>
     </lift:comet>

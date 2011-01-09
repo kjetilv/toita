@@ -6,7 +6,7 @@ import scalaz.Options
 import net.liftweb.http.js.JsCmds.SetHtml
 import vkode.toita.backend.{Rendrer, TOUser, ToitaSessionUser, ToitaRegister}
 
-class FolloweesComet
+class FollowedComet
     extends CometActor with Options with ToitaRegister with ToitaSessionUser with Loggable {
 
   def render = bind ("f",
