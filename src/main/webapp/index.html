@@ -13,10 +13,8 @@
   </lift:comet>
   </lift:with-param>
   <div>
-    <!--<lift:selectTweets>-->
-      <!--<lift:next/> <lift:previous/>-->
-    <!--</lift:selectTweets>-->
     <lift:comet type="UserStreamComet" name="UserStream">
+      <us:next/> <us:previous/> <us:index/>
       <us:tweets>No data received yet</us:tweets>
     </lift:comet>
   </div>
