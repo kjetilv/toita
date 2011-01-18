@@ -15,6 +15,8 @@ import SHtml._
 
 object Index extends SessionVar[Int](0)
 
+object Count extends SessionVar[Int](20)
+
 class UserStreamComet
     extends CometActor with Options with ToitaRegister with ToitaSessionUser with Loggable {
 
@@ -27,19 +29,33 @@ class UserStreamComet
   override def render =
     bind("us",
          "next" -> ajaxButton("Next", () => {
-           Index(Index.get + 1)
+           Index(math.min(conversation.map(_.total - Count.get) getOrElse 0,
+                          Index.get + Count.get))
            SetHtml ("tweets", renderTable)
          }),
+         "index" -> Text(Index.get.toString),
+         "total" -> Text(conversation.map(_.total.toString) getOrElse "0"),
          "previous" -> ajaxButton("Previous", () => {
            Index(math.max(Index.get - 1, 0))
            SetHtml ("tweets", renderTable)
          }),
-         "index" -> Text(Index.get + ""),
+         "count" -> ajaxSelect(List(("20" → "20"),
+                                    ("40" → "40"),
+                                    ("60" → "60"),
+                                    ("80" → "80"),
+                                    ("100" → "100")),
+                               Full("20"),
+                               value => {
+                                 Count(value.toInt)
+                                 SetHtml ("tweets", renderTable)
+                               }),
          "tweets" -> renderTable)
 
   def renderTable: NodeSeq =
     try {
-      conversation map (conv => Rendrer render (conv.items drop (Index.get * 10) take 100)) getOrElse <span>Waiting for conversation...</span>
+      conversation map (conv => {
+        Rendrer render (conv.items drop (Index.get * 10) take Count.get)
+      }) getOrElse <span>Waiting for conversation...</span>
     } catch {
       case e =>
         logger.warn("Failed to render table!", e)

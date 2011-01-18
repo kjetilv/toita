@@ -10,7 +10,10 @@ object Conversation {
   }
 }
 
-case class Conversation[T <: Treeable](tree: Tree[T], items: List[ConversationItem[T]])
+case class Conversation[T <: Treeable](tree: Tree[T], items: List[ConversationItem[T]]) {
+
+  def total = (0 /: items) (_ + _.nodeCount)
+}
 
 trait Treeable {
   def id: BigInt
