@@ -14,7 +14,7 @@ import vkode.toita.backend.ToitaCentral
  */
 class Boot {
 
-  (Actor actorOf classOf[ToitaCentral]).start
+  val central = Actor actorOf classOf[ToitaCentral]
 
   def boot {
     import LiftRules._
@@ -40,6 +40,10 @@ class Boot {
     early.append(makeUtf8)
 
     loggedInTest = Full(() => User.loggedIn_?)
+
+    central.start
+
+    unloadHooks.append(() => central.stop)
   }
 
   /**

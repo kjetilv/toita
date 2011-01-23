@@ -27,7 +27,7 @@ class Pager(sessionVar: SessionVar[Long],
 
   def log10 (i: Long): Long = i.toString.size
 
-  def pow (i: Long, j:Long) = Math.pow(i, j).asInstanceOf[Long]
+  def pow (i: Long, j:Long) = math.pow(i, j).asInstanceOf[Long]
 
   def makeRangeSeq(start: Long, pos: Long, size: Long, tens: Long, fun: (Long) => Unit): Unit = {
     val stepSize = pow(10, tens)
