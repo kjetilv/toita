@@ -2,9 +2,9 @@ package vkode.toita.backend
 
 import net.liftweb.json.JsonParser
 import org.junit.{Assert, Test}
-import net.liftweb.json.JsonAST.{JValue, JArray, JObject}
+import net.liftweb.json.JsonAST.JValue
 
-object ParseStuff {
+object ParseStuffData {
 
   val reply_mention = """{
        "new_id_str":"1538274573160448",
@@ -440,7 +440,7 @@ object ParseStuff {
 
 class ParseStuff {
 
-  import ParseStuff._
+  import ParseStuffData._
 
   @Test def parseRTAndTag {
     parse (rt_tag) map (_ match {
@@ -455,7 +455,13 @@ class ParseStuff {
   }
 
   @Test def parseNewRTAndTag {
-    parse(new_rt_tag)
+    parse(new_rt_tag) match {
+      case None => Assert fail "Not parsed"
+      case Some(update) => update match {
+        case TwitterStatusUpdate(_, _, _, Some(retweet), _, _, _, _) =>
+        case x => Assert fail "Not parsed retweet: " +x
+      }
+    }
   }
 
   @Test def parseMentionAndURL {

@@ -3,14 +3,14 @@ package vkode.toita.backend
 import org.junit.{Assert, Test}
 import Assert._
 
-class ConversationNodeTest {
+class StreamNodeTest {
 
   implicit def toBig (i: Int) = BigInt(i)
 
   case class Item(id: BigInt, name: String, timestamp: Long) extends Treeable
 
   @Test def buildSingle {
-    val tree = Conversation[Item](List(BigInt(1)),
+    val tree = Stream[Item](List(BigInt(1)),
                                   Map(BigInt(1) -> Item(1, "one", 1000)),
                                   Map[BigInt, List[BigInt]]())
     assertEquals(1, tree.items.size)
@@ -18,7 +18,7 @@ class ConversationNodeTest {
   }
 
   @Test def buildSimple {
-    val conversation = Conversation[Item](List(BigInt(1), BigInt(2)),
+    val conversation = Stream[Item](List(BigInt(1), BigInt(2)),
                                           Map(BigInt(1) -> Item(1, "one", 1000),
                                               BigInt(2) -> Item(2, "two", 2000),
                                               BigInt(3) -> Item(3, "three", 3000),

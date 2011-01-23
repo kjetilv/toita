@@ -18,15 +18,15 @@ object Rendrer {
   def render(friendIds: Option[List[BigInt]]) =
     <span> { friendIds map (_ mkString ",") getOrElse "No friends!" } </span>
 
-  def render (statuses: List[ConversationItem[TwitterStatusUpdate]]) =
+  def render (statuses: List[StreamItem[TwitterStatusUpdate]]) =
     <table border="2" rules="rows">
       { bulletPoints (statuses) }
     </table>
 
-  private def bulletPoints(statuses: List[ConversationItem[TwitterStatusUpdate]]): List[NodeSeq] =
+  private def bulletPoints(statuses: List[StreamItem[TwitterStatusUpdate]]): List[NodeSeq] =
     statuses flatMap (row (_))
 
-  private def row (event: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
+  private def row (event: StreamItem[TwitterStatusUpdate]): List[NodeSeq] =
     try {
       Rendrer render event
     } catch {
@@ -39,13 +39,13 @@ object Rendrer {
   def renderSmall(user: TOUser) =
     <span><img src={user.profile_image_url} height="12" width="12"/> {user.screen_name}</span>
 
-  def render(item: ConversationItem[TwitterStatusUpdate]): List[NodeSeq] =
+  def render(item: StreamItem[TwitterStatusUpdate]): List[NodeSeq] =
     item match {
-      case ConversationItem(TwitterStatusUpdate(status, meta,
-                                                Some(TOUser(_, screen_name, name, _, _, _, imageUrl)),
-                                                retweeted, entities, reply, deleted, json),
-                            indent,
-                            _, _, _, _, _) =>
+      case StreamItem(TwitterStatusUpdate(status, meta,
+                                          Some(TOUser(_, screen_name, name, _, _, _, imageUrl)),
+                                          retweeted, entities, reply, deleted, json),
+                      indent,
+                      _, _, _, _, _) =>
         val arrows = (1 to indent).toList.map(x => <span>&#8618;</span>)
         val spaces = (1 to indent).toList.map(x => <span>&nbsp;&nbsp;</span>)
         List(<tr>

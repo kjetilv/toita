@@ -6,7 +6,7 @@ import net.liftweb.json.JsonAST.JNothing
 
 class RenderStuff {
 
-  private def render (tsu: TwitterStatusUpdate) = Rendrer render (ConversationItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]()))
+  private def render (tsu: TwitterStatusUpdate) = Rendrer render (StreamItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]()))
 
   @Test def renderMentionHashes {
     val text = "hey @zip #zot foobar #zip fussball"
@@ -208,16 +208,16 @@ class RenderStuff {
   }
 
   private def parseAndRender(json: String): Unit = {
-    import ParseStuff._
+    import ParseStuffData._
     val event = parse(json).get.asInstanceOf[TwitterStatusUpdate]
-    val nodes = Rendrer render ConversationItem(event, 0, 0, 0, Set[String](), Set[String](), Set[String]())
+    val nodes = Rendrer render StreamItem(event, 0, 0, 0, Set[String](), Set[String](), Set[String]())
     Assert.assertEquals("Bad render: " + nodes,
                         2, nodes.size)
   }
 
-  @Test def parseAndRenderMentionURL = parseAndRender(ParseStuff.mention_url)
+  @Test def parseAndRenderMentionURL = parseAndRender(ParseStuffData.mention_url)
 
-  @Test def parseAndRenderRTTag = parseAndRender(ParseStuff.rt_tag)
+  @Test def parseAndRenderRTTag = parseAndRender(ParseStuffData.rt_tag)
 
-  @Test def parseAndRenderLongRTTag = parseAndRender(ParseStuff.longRt)
+  @Test def parseAndRenderLongRTTag = parseAndRender(ParseStuffData.longRt)
 }

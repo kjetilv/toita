@@ -43,5 +43,5 @@ class StatusTracker (userStream: CometActor, twitterService: TwitterAsynchServic
 
   private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
 
-  private def updateConversation = userStream ! Conversation(roots, statusMap, repliesTo)
+  private def updateConversation = userStream ! Stream(roots, statusMap, repliesTo)
 }

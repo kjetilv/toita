@@ -1,15 +1,11 @@
 package bootstrap.liftweb
 
-import net.liftweb.util._
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.http.provider._
 import net.liftweb.sitemap._
-import net.liftweb.sitemap.Loc._
-import net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, StandardDBVendor}
-import java.sql.{Connection, DriverManager}
 import vkode.toita.model._
-import akka.actor.{ActorRef, Actor, ActorRegistry}
+import akka.actor.Actor
 import vkode.toita.backend.ToitaCentral
 
 /**
@@ -21,27 +17,29 @@ class Boot {
   (Actor actorOf classOf[ToitaCentral]).start
 
   def boot {
-    LiftRules.addToPackages("vkode.toita")
-//     LiftRules.htmlProperties.default set ((r: Req) => new Html5Properties(r.userAgent))
+    import LiftRules._
 
-    // Build SiteMap
-    def sitemap() = SiteMap(Menu("Home") / "index",
-                            Menu("User") / "user")
+    addToPackages("vkode.toita")
 
-    LiftRules.setSiteMapFunc(sitemap)
+    /*
+     * Build SiteMap
+     */
+    setSiteMapFunc(() => SiteMap(Menu("Home") / "index",
+                                 Menu("User") / "user"))
 
     /*
      * Show the spinny image when an Ajax call starts
-       */
+     */
+    ajaxStart = Full(() => jsArtifacts.show("ajax-loader").cmd)
+
     /*
      * Make the spinny image go away when it ends
      */
-    LiftRules.ajaxEnd =
-      Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
+    ajaxEnd = Full(() => jsArtifacts.hide("ajax-loader").cmd)
 
-    LiftRules.early.append(makeUtf8)
+    early.append(makeUtf8)
 
-    LiftRules.loggedInTest = Full(() => User.loggedIn_?)
+    loggedInTest = Full(() => User.loggedIn_?)
   }
 
   /**

@@ -1,16 +1,16 @@
 package vkode.toita.backend
 
-object Conversation {
+object Stream {
 
   def apply[T <: Treeable](roots: List[BigInt],
                            tMap: Map[BigInt, T],
-                           children: Map[BigInt, List[BigInt]]): Conversation[T] = {
+                           children: Map[BigInt, List[BigInt]]): Stream[T] = {
     val tree = TreeBuilder(roots, tMap, children).build
-    Conversation(tree, tree.items)
+    Stream(tree, tree.items)
   }
 }
 
-case class Conversation[T <: Treeable](tree: Tree[T], items: List[ConversationItem[T]]) {
+case class Stream[T <: Treeable](tree: Tree[T], items: List[StreamItem[T]]) {
 
   def total = (0 /: items) (_ + _.nodeCount)
 }
@@ -27,21 +27,21 @@ trait TreeStat[T <: Treeable] {
   def names: Set[String]
   def namesBelow: Set[String]
   def namesOther: Set[String]
-  def items: List[ConversationItem[T]]
+  def items: List[StreamItem[T]]
 }
 
-case class ConversationItem[T <: Treeable](t: T, indent: Int, nodeCount: Int, latest: Long,
-                                           names: Set[String], namesBelow: Set[String], namesOther: Set[String])
+case class StreamItem[T <: Treeable](t: T, indent: Int, nodeCount: Int, latest: Long,
+                                     names: Set[String], namesBelow: Set[String], namesOther: Set[String])
     extends TreeStat[T] {
   def items = List(this)
 }
 
-object ConversationNode {
+object StreamNode {
 
-  def apply[T <: Treeable](t: T): ConversationNode[T] = ConversationNode[T](t, Nil)
+  def apply[T <: Treeable](t: T): StreamNode[T] = StreamNode[T](t, Nil)
 }
 
-case class ConversationNode[T <: Treeable](t: T, subnodes: List[ConversationNode[T]]) extends TreeStat[T] {
+case class StreamNode[T <: Treeable](t: T, subnodes: List[StreamNode[T]]) extends TreeStat[T] {
 
   lazy val nodeCount: Int = 1 + (subnodes match {
     case Nil => 0
@@ -56,18 +56,20 @@ case class ConversationNode[T <: Treeable](t: T, subnodes: List[ConversationNode
 
   lazy val namesOther: Set[String] = namesBelow - t.name
 
-  lazy val items: List[ConversationItem[T]] =
+  lazy val items: List[StreamItem[T]] =
     toItem(0) :: (subnodes flatMap (_.subItems(1)))
 
-  private def subItems(depth: Int): List[ConversationItem[T]] =
+  def isDiscussion = !subnodes.isEmpty
+
+  private def subItems(depth: Int): List[StreamItem[T]] =
     toItem(depth) :: (subnodes flatMap (_.subItems(depth + 1)))
 
-  private def toItem(depth: Int) = ConversationItem(t, depth, nodeCount, latest, names, namesBelow, namesOther)
+  private def toItem(depth: Int) = StreamItem(t, depth, nodeCount, latest, names, namesBelow, namesOther)
 
   private def timestamps: List[Long] = t.timestamp :: (subnodes flatMap (_.timestamps))
 }
 
-case class Tree[T <: Treeable](nodes: List[ConversationNode[T]]) extends TreeStat[T] {
+case class Tree[T <: Treeable](nodes: List[StreamNode[T]]) extends TreeStat[T] {
 
   lazy val nodeCount = nodes match {
     case Nil => 0
@@ -92,9 +94,9 @@ case class TreeBuilder[T <: Treeable](roots: List[BigInt],
                                       tMap: Map[BigInt, T],
                                       children: Map[BigInt, List[BigInt]]) {
 
-  private def nodes (ids: List[BigInt]) = ids map (tMap(_)) map (ConversationNode(_))
+  private def nodes (ids: List[BigInt]) = ids map (tMap(_)) map (StreamNode(_))
 
-  private def addSubs(node: ConversationNode[T]): ConversationNode[T] =
+  private def addSubs(node: StreamNode[T]): StreamNode[T] =
     if (children contains node.t.id) node copy (subnodes = nodes (children (node.t.id)) map (addSubs (_)))
     else node
 

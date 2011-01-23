@@ -15,7 +15,7 @@ object JsonTransformer extends Logging {
     file
   }
 
-  private lazy val doWrite = System getProperty ("writestream") equalsIgnoreCase "true"
+  private lazy val doWrite = System getProperty ("writestream", "false") equalsIgnoreCase "true"
 
   private lazy val writer = new PrintWriter(new FileWriter(file, true))
 
@@ -61,27 +61,26 @@ object JsonTransformer extends Logging {
     Extraction extractOpt json
   }
 
+  private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
+    extract (json, classOf[TOStatus]) map (status => {
+      val user = extract (json \ "user", classOf[TOUser])
+      val meta = extract (json, classOf[TOMeta]) get
+      val retweeted = json \ "retweeted_status" match {
+        case JNull => None
+        case JNothing => None
+        case json => parseStatus(json)
+      }
+      val hashtags = entities("hashtags", json, classOf[TOHashtag])
+      val mentions = entities("user_mentions", json, classOf[TOMention])
+      val urls = entities("urls", json, classOf[TOURL])
+      val reply = extract (json, classOf[TOReply])
+      val toEntities = TOEntities(hashtags, mentions, urls)
+      TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply, false, json)
+    })
+  }
+
   private lazy val transformers: Map[String, JValue => Option[TwitterEvent]] =
-    Map("text" -> (json => {
-      extract (json, classOf[TOStatus]) map (status => {
-        val user = extract (json \ "user", classOf[TOUser])
-        val meta = extract (json, classOf[TOMeta]) get
-        val retweeted = json \ "retweeted_status" match {
-          case JNull => None
-          case JNothing => None
-          case json => getEvent(json) match {
-            case tsu: TwitterStatusUpdate => Some(tsu)
-            case _ => None
-          }
-        }
-        val hashtags = entities("hashtags", json, classOf[TOHashtag])
-        val mentions = entities("user_mentions", json, classOf[TOMention])
-        val urls = entities("urls", json, classOf[TOURL])
-        val reply = extract (json, classOf[TOReply])
-        val toEntities = TOEntities(hashtags, mentions, urls)
-        TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply, false, json)
-      })
-    }),
+    Map("text" -> (json => parseStatus(json)),
         "delete" -> (json => {
           extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_, json))
         }),

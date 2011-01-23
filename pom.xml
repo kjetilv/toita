@@ -10,13 +10,17 @@
     <name>toita Project</name>
     <inceptionYear>2010</inceptionYear>
     <properties>
+        <scribe.version>1.1.0</scribe.version>
+        <jodatime.version>1.6.2</jodatime.version>
+        <http.version>4.1</http.version>
         <scala.version>2.8.1</scala.version>
-        <akka.version>1.0-RC3</akka.version>
+        <scala.plugin.version>2.15.0</scala.plugin.version>
+        <akka.version>1.0-RC5</akka.version>
         <scalaz.version>5.0</scalaz.version>
-        <slf4s.version>1.0.3-SNAPSHOT</slf4s.version>
         <scalaz.scala.version>2.8.0</scalaz.scala.version>
         <lift.scala.version>2.8.1</lift.scala.version>
         <lift.version>2.2</lift.version>
+        <bundle.plugin.version>2.2.0</bundle.plugin.version>
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -47,13 +51,13 @@
         <repository>
             <id>Akka</id>
             <name>Akka Maven2 Repository</name>
-            <url>http://www.scalablesolutions.se/akka/repository/ </url>
+            <url>http://www.scalablesolutions.se/akka/repository</url>
         </repository>
 
         <repository>
             <id>Multiverse</id>
             <name>Multiverse Maven2 Repository</name>
-            <url>http://multiverse.googlecode.com/svn/maven-repository/releases/</url>
+            <url>http://multiverse.googlecode.com/svn/maven-repository/releases</url>
         </repository>
 
         <repository>
@@ -81,17 +85,17 @@
         <dependency>
             <groupId>org.scribe</groupId>
             <artifactId>scribe</artifactId>
-            <version>1.0.9</version>
+            <version>${scribe.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.0.3</version>
+            <version>${http.version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>1.6.2</version>
+            <version>${jodatime.version}</version>
         </dependency>
         <dependency>
             <groupId>net.liftweb</groupId>
@@ -129,6 +133,11 @@
             <version>${scalaz.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.eaio</groupId>
+            <artifactId>uuid</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>1.2.138</version>
@@ -143,13 +152,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.7</version>
+            <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-tools.testing</groupId>
             <artifactId>specs_${scala.version}</artifactId>
-            <version>1.6.6</version>
+            <version>1.6.7.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -184,7 +193,7 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
-                <version>2.14.3</version>
+                <version>${scala.plugin.version}</version>
                 <configuration>
                     <charset>${project.build.sourceEncoding}</charset>
                     <jvmArgs>
@@ -261,21 +270,14 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.7</version>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${bundle.plugin.version}</version>
+                <extensions>true</extensions>
                 <configuration>
-                    <downloadSources>true</downloadSources>
-                    <additionalProjectnatures>
-                        <projectnature>ch.epfl.lamp.sdt.core.scalanature</projectnature>
-                    </additionalProjectnatures>
-                    <additionalBuildcommands>
-                        <buildcommand>ch.epfl.lamp.sdt.core.scalabuilder</buildcommand>
-                    </additionalBuildcommands>
-                    <classpathContainers>
-                        <classpathContainer>ch.epfl.lamp.sdt.launching.SCALA_CONTAINER</classpathContainer>
-                        <classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
-                    </classpathContainers>
+                    <instructions>
+                        <Export-Package>vkode.toita.*</Export-Package>
+                    </instructions>
                 </configuration>
             </plugin>
         </plugins>
@@ -285,7 +287,7 @@
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
-                <version>2.14.3</version>
+                <version>${scala.plugin.version}</version>
                 <configuration>
                     <charset>${project.build.sourceEncoding}</charset>
                     <jvmArgs>

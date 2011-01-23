@@ -24,7 +24,7 @@ class UserStreamComet
 
   private var friends: Option[TwitterFriends] = None
 
-  private var conversation: Option[Conversation[TwitterStatusUpdate]] = None
+  private var conversation: Option[Stream[TwitterStatusUpdate]] = None
 
   override def render =
     bind("us",
@@ -72,7 +72,7 @@ class UserStreamComet
       }
 
   override def lowPriority: PartialFunction[Any, Unit] = {
-    case update: Conversation[TwitterStatusUpdate] =>
+    case update: Stream[TwitterStatusUpdate] =>
       conversation = Option(update)
       rerenderTable
   }
