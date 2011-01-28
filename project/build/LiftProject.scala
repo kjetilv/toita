@@ -38,8 +38,8 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) {
   depend("com.eaio", "3.2", "uuid")
   depend("com.h2database", "1.2.138", "h2")
   depend("junit", "4.8.2", "junit")
-  depend("org.scribe", "1.1.0", "scribe")
-  depend("org.apache.httpcomponents", "4.1", "httpclient")
+  depend("org.scribe", "1.0.9", "scribe")
+  depend("org.apache.httpcomponents", "4.0.3", "httpclient")
   depend("joda-time", "1.6.2", "joda-time", "1.6.2")
   depend("org.mortbay.jetty", "6.1.25", "jetty")
 
