@@ -59,18 +59,22 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
   private def shouldStartStream =
     !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
 
-  private def startStream =
-    Actor spawn {
-      message (twitterSession.homeTimeline)
-      try {
-        for (line <- twitterStream) message (line)
-      } catch {
-        case e: IOException =>
-          log.info(this + " done", e)
-      } finally {
-        twitterStream.close
-      }
+  private def feedFromStream {
+    message (twitterSession.homeTimeline)
+    try {
+      for (line <- twitterStream) message (line)
+    } catch {
+      case e: IOException =>
+        log.info(this + " done", e)
+    } finally {
+      twitterStream.close
     }
+  }
+
+  private def startStream =
+    new Thread(new Runnable {
+      def run = feedFromStream
+    }, "Emitter for " + twitterSession).start
 
   private def message (line: String) = events(line) groupBy (_.getClass) foreach (_ match {
     case (eventType, events) => ship(eventType, events)
@@ -78,7 +82,8 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
 
   private def ship(eventType: Class[_], events: List[TwitterEvent]) {
     receivers get (eventType) match {
-      case Some (receivers) => ship(receivers, events)
+      case Some (receivers) =>
+        ship(receivers, events)
       case None =>
         log.warn("No receivers for " + events.size + " events of type " + eventType)
     }

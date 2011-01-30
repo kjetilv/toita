@@ -1,16 +1,16 @@
 package vkode.toita.backend
 
-object Stream {
+object TStream {
 
   def apply[T <: Treeable](roots: List[BigInt],
                            tMap: Map[BigInt, T],
-                           children: Map[BigInt, List[BigInt]]): Stream[T] = {
+                           children: Map[BigInt, List[BigInt]]): TStream[T] = {
     val tree = TreeBuilder(roots, tMap, children).build
-    Stream(tree, tree.items)
+    TStream(tree, tree.items)
   }
 }
 
-case class Stream[T <: Treeable](tree: Tree[T], items: List[StreamItem[T]]) {
+case class TStream[T <: Treeable](tree: Tree[T], items: List[StreamItem[T]]) {
 
   def total = (0 /: items) (_ + _.nodeCount)
 }

@@ -1,21 +1,54 @@
-<lift:surround with="default" at="content">
-  <lift:with-param name="followees">
-    <lift:comet type="FollowedComet" name="FollowedComet">
-      <f:list/>
-    </lift:comet>
-  </lift:with-param>
-  <lift:with-param name="diagnostics">
-  <lift:comet type="DiagnosticsComet" name="Diagnostics">
-    <ul>
-      <li>Streams up: <dia:streams/></li>
-      <li>Lookups active: <dia:lookups/></li>
-    </ul>
-  </lift:comet>
-  </lift:with-param>
-  <div>
-    <lift:comet type="UserStreamComet" name="UserStream">
-      <us:previous/> <us:index/> / <us:total/> <us:count/> <us:next/>
-      <us:tweets>No data received yet</us:tweets>
-    </lift:comet>
+<lift:surround with="default">
+  <style type="text/css">
+    .diagnostics { font-style:italic }
+    .followees   { font-style:oblique }
+    .followees u li { visibility:hidden }
+
+    .tweets    { float:right; width:100% }
+    .tweetarea { width:100% }
+    .tweetimg  { float:left; width:20% }
+    .tweetname { float:left; width:80%; height:20%; text-align:left }
+    .tweettext { float:left; width:80%; height:80%; text-align:right }
+  </style>
+
+  <div class="followees">
+    <lift:with-param name="followees">
+      <lift:comet type="FollowedComet" name="FollowedComet">
+        <f:list/>
+      </lift:comet>
+    </lift:with-param>
   </div>
+
+  <div class="diagnostics">
+    <lift:with-param name="diagnostics">
+      <lift:comet type="DiagnosticsComet" name="Diagnostics">
+        <ul>
+          <li>Streams up: <dia:streams/></li>
+          <li>Lookups active: <dia:lookups/></li>
+        </ul>
+      </lift:comet>
+    </lift:with-param>
+  </div>
+
+  <lift:with-param name="content">
+    <div class="tweets">
+      <lift:comet type="UserStreamTemplatedComet" name="UserStreamTemplated">
+        <div id="tweetarea" class="tweetarea">
+          <div class="tweetimg">
+            <us:img width="48" height="48"/>
+          </div>
+          <div class="tweetname">
+            <us:name/>
+          </div>
+          <div class="tweettext">
+            <us:text/>
+          </div>
+        </div>
+      </lift:comet>
+      <lift:comet type="UserStreamComet" name="UserStream">
+        <us:previous/> <us:index/> / <us:total/> <us:count/> <us:next/>
+        <us:tweets/>
+      </lift:comet>
+    </div>
+  </lift:with-param>
 </lift:surround>

@@ -10,7 +10,7 @@ class StreamNodeTest {
   case class Item(id: BigInt, name: String, timestamp: Long) extends Treeable
 
   @Test def buildSingle {
-    val tree = Stream[Item](List(BigInt(1)),
+    val tree = TStream[Item](List(BigInt(1)),
                                   Map(BigInt(1) -> Item(1, "one", 1000)),
                                   Map[BigInt, List[BigInt]]())
     assertEquals(1, tree.items.size)
@@ -18,7 +18,7 @@ class StreamNodeTest {
   }
 
   @Test def buildSimple {
-    val conversation = Stream[Item](List(BigInt(1), BigInt(2)),
+    val conversation = TStream[Item](List(BigInt(1), BigInt(2)),
                                           Map(BigInt(1) -> Item(1, "one", 1000),
                                               BigInt(2) -> Item(2, "two", 2000),
                                               BigInt(3) -> Item(3, "three", 3000),

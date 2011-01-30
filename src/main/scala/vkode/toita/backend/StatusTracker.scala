@@ -1,13 +1,17 @@
 package vkode.toita.backend
 
-import net.liftweb.http.CometActor
 import akka.actor.Actor
 import akka.util.Logging
+import vkode.toita.backend.Tracker.TrackerControl
 
-class StatusTracker (userStream: CometActor, twitterService: TwitterAsynchService)
-    extends Actor with Logging {
+class StatusTracker (twitterService: TwitterAsynchService)
+    extends Tracker with Actor with Logging {
 
-  def receive = {
+  override def preStart =
+    log.info(this + " starts")
+
+  protected def receive = {
+    case msg: TrackerControl => control(msg)
     case TwitterStatusDelete(TOStatusRef(id, _), _) =>
       statusMap = statusMap get id match {
         case None => statusMap
@@ -43,5 +47,5 @@ class StatusTracker (userStream: CometActor, twitterService: TwitterAsynchServic
 
   private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
 
-  private def updateConversation = userStream ! Stream(roots, statusMap, repliesTo)
+  private def updateConversation = send(TStream(roots, statusMap, repliesTo))
 }

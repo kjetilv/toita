@@ -2,21 +2,21 @@ package vkode.toita.backend
 
 import scalaz.Options
 import akka.actor.{ActorRef, Actor}
-import vkode.toita.comet.{FollowedComet, DiagnosticsComet, UserStreamComet}
+import Actor._
+import scala.collection.mutable.Map
+import vkode.toita.comet.{UserStream, FollowedComet, DiagnosticsComet}
 
 class ToitaCentral extends Actor with Options {
 
   override def receive = {
-    case CometUp(actor: UserStreamComet) =>
-      userStreams = dismantle(userStreams, actor.session)
+    case CometUp(actor: UserStream) =>
       setup(actor)
-    case CometDown(actor: UserStreamComet) =>
-      userStreams = dismantle(followeeses, actor.session)
+    case CometDown(actor: UserStream) =>
+      dismantle(statusTrackers, actor.session)
     case CometUp(actor: FollowedComet) =>
-      followeeses = dismantle(followeeses, actor.session)
       setup(actor)
     case CometDown(actor: FollowedComet) =>
-      followeeses = dismantle(followeeses, actor.session)
+      dismantle(followerTrackers, actor.session)
     case CometUp(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians :+ diagnostics
     case CometDown(diagnostics: DiagnosticsComet) =>
@@ -30,26 +30,32 @@ class ToitaCentral extends Actor with Options {
 
   var diagnosticians = List[DiagnosticsComet]()
 
-  var userStreams = Map[UserSession,ActorRef]()
+  val statusTrackers = Map[UserSession,ActorRef]()
 
-  var followeeses = Map[UserSession,ActorRef]()
+  val followerTrackers = Map[UserSession,ActorRef]()
 
-  def getEmitter(sessionUser: ToitaSessionUser) = StreamEmitter(sessionUser.session)
+  private def setup (userStream: UserStream) = statusTracker(userStream) ! Tracker.Add(userStream)
 
-  private def setup (userStream: UserStreamComet) {
-    val emitter = getEmitter (userStream)
-    val tracker = (Actor actorOf (new StatusTracker (userStream, emitter)))
-    emitter.addReceiver (tracker, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
-    tracker.start
-    userStreams = userStreams + (userStream.session -> tracker)
+  private def setup (followees: FollowedComet) = followerTracker(followees) ! Tracker.Add(followees)
+
+  private def statusTracker(userStream: UserStream) =
+    statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
+
+  private def followerTracker(followees: FollowedComet) =
+    followerTrackers getOrElseUpdate (followees.session, newFollowerTracker(getEmitter(followees)))
+
+  private def getEmitter(sessionUser: ToitaSessionUser) = StreamEmitter(sessionUser.session)
+
+  private def newStatusTracker(emitter: StreamEmitter) = {
+    val statusTrackerRef = actorOf (new StatusTracker(emitter)).start
+    emitter addReceiver(statusTrackerRef, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
+    statusTrackerRef
   }
 
-  private def setup (followees: FollowedComet) {
-    val emitter = getEmitter (followees)
-    val tracker = (Actor actorOf (new FollowerTracker (followees, emitter)))
-    emitter.addReceiver (tracker, classOf[TwitterFriends], classOf[TwitterFriend])
-    tracker.start
-    followeeses = followeeses + (followees.session -> tracker)
+  private def newFollowerTracker(emitter: StreamEmitter) = {
+    val followerTrackerRef = actorOf (new FollowerTracker (emitter)).start
+    emitter addReceiver (followerTrackerRef, classOf[TwitterFriends], classOf[TwitterFriend])
+    followerTrackerRef
   }
 
   private def dismantle (m: Map[UserSession,ActorRef], key: UserSession) =

@@ -6,6 +6,7 @@ import net.liftweb.http.provider._
 import net.liftweb.sitemap._
 import vkode.toita.model._
 import akka.actor.Actor
+import Actor._
 import vkode.toita.backend.ToitaCentral
 
 /**
@@ -14,7 +15,7 @@ import vkode.toita.backend.ToitaCentral
  */
 class Boot {
 
-  val central = Actor actorOf classOf[ToitaCentral]
+  val central = actorOf[ToitaCentral].start
 
   def boot {
     import LiftRules._
