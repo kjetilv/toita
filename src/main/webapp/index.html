@@ -1,4 +1,6 @@
-<lift:surround with="default">
+<div id="main" class="lift:surround?with=default">
+
+  <!--<lift:surround with="default" xmlns:lift="http://www.w3.org/1999/XSL/Transform">-->
   <style type="text/css">
     .diagnostics { font-style:italic }
     .followees   { font-style:oblique }
@@ -32,23 +34,21 @@
 
   <lift:with-param name="content">
     <div class="tweets">
-      <lift:comet type="UserStreamTemplatedComet" name="UserStreamTemplated">
-        <div id="tweetarea" class="tweetarea">
-          <div class="tweetimg">
-            <us:img width="48" height="48"/>
-          </div>
-          <div class="tweetname">
-            <us:name/>
-          </div>
-          <div class="tweettext">
-            <us:text/>
-          </div>
+      <div id="tweetarea" class="lift:comet?type=UserStreamTemplatedComet;name=UserStreamTemplate tweetarea">
+        <div class="tweetimg">
+          <us:img width="48" height="48"/>
         </div>
-      </lift:comet>
+        <div class="tweetname">
+          <us:name/>
+        </div>
+        <div class="tweettext">
+          <us:text/>
+        </div>
+      </div>
       <lift:comet type="UserStreamComet" name="UserStream">
         <us:previous/> <us:index/> / <us:total/> <us:count/> <us:next/>
         <us:tweets/>
       </lift:comet>
     </div>
   </lift:with-param>
-</lift:surround>
+</div>
