@@ -1,4 +1,4 @@
-<div id="main" class="lift:surround?with=default">
+<div id="main" class="lift:surround?with=default" xmlns:lift="http://www.w3.org/1999/XSL/Transform">
 
   <!--<lift:surround with="default" xmlns:lift="http://www.w3.org/1999/XSL/Transform">-->
   <style type="text/css">
@@ -35,14 +35,14 @@
   <lift:with-param name="content">
     <div class="tweets">
       <div id="tweetarea" class="lift:comet?type=UserStreamTemplatedComet;name=UserStreamTemplate tweetarea">
-        <div class="tweetimg">
-          <us:img width="48" height="48"/>
+        <div id="tweetimg" class="tweetimg">
+          <span id="#tweetimg" width="48" height="48"/>
         </div>
-        <div class="tweetname">
-          <us:name/>
+        <div id="tweetname" class="tweetname">
+          <span id="#tweetname"/>
         </div>
-        <div class="tweettext">
-          <us:text/>
+        <div id="tweettext" class="tweettext">
+          <span id="#tweettex"/>
         </div>
       </div>
       <lift:comet type="UserStreamComet" name="UserStream">

@@ -17,7 +17,7 @@ class UserStreamTemplatedComet extends UserStream {
 
   private var friends: Option[TwitterFriends] = None
 
-  private def bindItem(item: StreamItem[TwitterStatusUpdate]): NodeSeq = item match {
+  private def transformFun(item: StreamItem[TwitterStatusUpdate]): CssBindFunc = item match {
     case StreamItem(TwitterStatusUpdate(TOStatus(sid, text),
                                         meta,
                                         Some(TOUser(uid, screen_name, name, _, _, _, imageUrl)),
@@ -27,21 +27,26 @@ class UserStreamTemplatedComet extends UserStream {
                                         deleted,
                                         _),
                     _, _, _, _, _, _) =>
-      bind("us", defaultXml,
-           "img" -> <img src={ imageUrl } alt={ name } width="48" height="48"/>,
-           "name" -> Text(name),
-           "text" -> Text(text))
-    case x => <span>Ooops: {x.toString}</span>
+      "#tweetimg" #> <img src={ imageUrl } alt={ name } width="48" height="48"/> &
+      "#tweetname" #> Text(name) &
+      "#tweettext" #> Text(text)
+    case x =>
+      "#tweetimg" #> Text("No logo") &
+      "#tweetname" #> Text("No name") &
+      "#tweettext" #> Text("No slogan")
   }
 
-  private def renderStream(items: List[StreamItem[TwitterStatusUpdate]]): NodeSeq = items flatMap (bindItem _)
+  private def renderOption: Option[NodeSeq] ={
+    stream map (_ items) map (_ take 5) map (_ match {
+      case Nil => Text("Loading")
+      case items => items map (transformFun (_)) flatMap (_ (defaultXml))
+    })
+  }
 
-  private def renderOption: NodeSeq = stream map (_ items) map (_ take 5) map (renderStream _) getOrElse Text("Loading ...")
-
-  override def render = renderOption
+  override def render = renderOption.get
 
   protected def updated {
-    partialUpdate(SetHtml("tweetarea", renderOption))
+    partialUpdate(SetHtml("tweetarea", renderOption.get))
     reRender(false)
   }
 }
