@@ -7,8 +7,7 @@ import net.liftweb.http.CometActor
 import scalaz.Options
 import vkode.toita.backend.{TStream, TwitterStatusUpdate, ToitaSessionUser, ToitaRegister}
 
-trait UserStream extends CometActor with
-                         ToitaRegister with ToitaSessionUser with Loggable with Options {
+trait UserStream extends ToitaComet {
 
   implicit def date2Yoda (date: Date) = new DateTime(date)
 

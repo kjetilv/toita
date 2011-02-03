@@ -35,20 +35,24 @@
   <lift:with-param name="content">
     <div class="tweets">
       <div id="tweetarea" class="lift:comet?type=UserStreamTemplatedComet;name=UserStreamTemplate tweetarea">
-        <div id="tweetimg" class="tweetimg">
-          <span id="#tweetimg" width="48" height="48"/>
-        </div>
-        <div id="tweetname" class="tweetname">
-          <span id="#tweetname"/>
-        </div>
-        <div id="tweettext" class="tweettext">
-          <span id="#tweettex"/>
-        </div>
+        <tweetarea count="10">
+          <div id="tweetimg" class="tweetimg">
+            <span id="#tweetimg" width="32" height="32"/>
+          </div>
+          <div id="tweetname" class="tweetname">
+            <span id="#tweetname"/>
+          </div>
+          <div id="tweettext" class="tweettext">
+            <span id="#tweettex"/>
+          </div>
+        </tweetarea>
       </div>
+      <!--
       <lift:comet type="UserStreamComet" name="UserStream">
         <us:previous/> <us:index/> / <us:total/> <us:count/> <us:next/>
         <us:tweets/>
       </lift:comet>
+      -->
     </div>
   </lift:with-param>
 </div>

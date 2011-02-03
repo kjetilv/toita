@@ -13,9 +13,14 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 
-class UserStreamTemplatedComet extends UserStream {
+class UserStreamTemplatedComet extends UserStream with ToitaCSSComet {
 
-  private var friends: Option[TwitterFriends] = None
+  protected val area = "tweetarea"
+
+  protected override def getNodeSeq: NodeSeq = stream map (_ items) map (_ take 5) map (_ match {
+    case Nil => Text("No tweets")
+    case items => items map (transformFun (_)) flatMap (_ (defaultXml))
+  }) getOrElse <span>Loading...</span>
 
   private def transformFun(item: StreamItem[TwitterStatusUpdate]): CssBindFunc = item match {
     case StreamItem(TwitterStatusUpdate(TOStatus(sid, text),
@@ -34,19 +39,5 @@ class UserStreamTemplatedComet extends UserStream {
       "#tweetimg" #> Text("No logo") &
       "#tweetname" #> Text("No name") &
       "#tweettext" #> Text("No slogan")
-  }
-
-  private def renderOption: Option[NodeSeq] ={
-    stream map (_ items) map (_ take 5) map (_ match {
-      case Nil => Text("Loading")
-      case items => items map (transformFun (_)) flatMap (_ (defaultXml))
-    })
-  }
-
-  override def render = renderOption.get
-
-  protected def updated {
-    partialUpdate(SetHtml("tweetarea", renderOption.get))
-    reRender(false)
   }
 }

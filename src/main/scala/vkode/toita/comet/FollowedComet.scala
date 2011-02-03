@@ -1,13 +1,9 @@
 package vkode.toita.comet
 
-import net.liftweb.common.Loggable
-import net.liftweb.http.CometActor
-import scalaz.Options
 import net.liftweb.http.js.JsCmds.SetHtml
-import vkode.toita.backend.{Rendrer, TOUser, ToitaSessionUser, ToitaRegister}
+import vkode.toita.backend.{Rendrer, TOUser}
 
-class FollowedComet
-    extends CometActor with Options with ToitaRegister with ToitaSessionUser with Loggable {
+class FollowedComet extends ToitaComet {
 
   def render = bind ("f",
                      "list" -> renderFriends)
