@@ -46,15 +46,11 @@ object JsonTransformer extends Logging {
     }) getOrElse None
   }
 
-  def entities[T](name: String, jo: JValue, mt: Class[T]): List[T] = {
-    implicit val imf = Manifest classType mt
-    val options: List[Option[T]] = jo \ "entities" \ name match {
-      case JField(_, JArray(objects)) =>
-        objects map (Extraction extractOpt _)
+  def entities[T](name: String, jo: JValue)(implicit m: Manifest[T]): List[T] =
+    ((jo \ "entities" \ name) match {
+      case JField(_, JArray(objects)) => objects map (_ extractOpt)
       case x => Nil
-    }
-    options filter (_ isDefined) map (_ get)
-  }
+    }) filter (_ isDefined) map (_ get)
 
   private def extract[T](json: JValue, tp: Class[T]): Option[T] = {
     implicit val mf = Manifest classType tp
@@ -62,19 +58,23 @@ object JsonTransformer extends Logging {
   }
 
   private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
-    extract (json, classOf[TOStatus]) map (status => {
-      val user = extract (json \ "user", classOf[TOUser])
-      val meta = extract (json, classOf[TOMeta]) get
+    json.extractOpt[TOStatus] map (status => {
+      val user = (json \ "user").extractOpt[TOUserDecoration] match {
+        case None => (json \ "user").extractOpt[TOUser]
+        case deco => (json \ "user").extractOpt[TOUser] map (_ copy (decoration = deco))
+      }
+      val meta = json.extract[TOMeta]
       val retweeted = json \ "retweeted_status" match {
         case JNull => None
         case JNothing => None
         case json => parseStatus(json)
       }
-      val hashtags = entities("hashtags", json, classOf[TOHashtag])
-      val mentions = entities("user_mentions", json, classOf[TOMention])
-      val urls = entities("urls", json, classOf[TOURL])
-      val reply = extract (json, classOf[TOReply])
+      val hashtags = entities[TOHashtag]("hashtags", json)
+      val mentions = entities[TOMention]("user_mentions", json)
+      val urls = entities[TOURL]("urls", json)
+      val reply = json.extractOpt[TOReply]
       val toEntities = TOEntities(hashtags, mentions, urls)
+
       TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply, false, json)
     })
   }
@@ -82,15 +82,15 @@ object JsonTransformer extends Logging {
   private lazy val transformers: Map[String, JValue => Option[TwitterEvent]] =
     Map("text" -> (json => parseStatus(json)),
         "delete" -> (json => {
-          extract (json \ "delete" \ "status", classOf[TOStatusRef]) map (TwitterStatusDelete (_, json))
+          (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, json))
         }),
         "friends" -> (json => {
-          extract (json, classOf[TOFriends]) map (TwitterFriends (_, json))
+          json.extractOpt[TOFriends] map (TwitterFriends (_, json))
         }),
         "screen_name" -> (json => {
-          extract(json, classOf[TOUser]) map (TwitterFriend(_, json))
+          json.extractOpt[TOUser] map (TwitterFriend(_, json))
         }),
         "event" -> (json => {
-          extract(json, classOf[TOFollowEvent]) map (TwitterFollower(_, json))
+          json.extractOpt[TOFollowEvent] map (TwitterFollower(_, json))
         }))
 }

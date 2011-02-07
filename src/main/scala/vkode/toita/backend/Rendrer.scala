@@ -42,7 +42,7 @@ object Rendrer {
   def render(item: StreamItem[TwitterStatusUpdate]): List[NodeSeq] =
     item match {
       case StreamItem(TwitterStatusUpdate(status, meta,
-                                          Some(TOUser(_, screen_name, name, _, _, _, imageUrl)),
+                                          Some(TOUser(_, screen_name, name, _, imageUrl, _)),
                                           retweeted, entities, reply, deleted, json),
                       indent,
                       _, _, _, _, _) =>
@@ -64,7 +64,7 @@ object Rendrer {
                  case Some(TwitterStatusUpdate
                                (TOStatus(id, _),
                                 TOMeta(_, _, _, _, _, date, _),
-                                Some(TOUser(_, screen_name, name, _, _, _, _)),
+                                Some(TOUser(_, screen_name, name, _, _, _)),
                                 _,
                                 _,
                                 _,

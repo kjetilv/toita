@@ -240,40 +240,6 @@ object ParseStuffData {
   def parse(string: String): Option[TwitterEvent] =
     parse (JsonParser parseOpt string)
 
-  def parse(json: Option[JValue]): Option[TwitterEvent] = json match {
-    case Some(json: JValue) =>
-      println("Recv: " + json)
-      val list = JsonTransformer getEvent json
-      if (list.isEmpty) {
-        println ("No hits: " + list)
-        None
-      } else
-        list map (_ match {
-          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json) =>
-            println("OK: " + status)
-            println("  : " + meta)
-            println("  : " + user)
-            println("  : " + retweet)
-            println("  : " + urls)
-            println("  : " + mentions)
-            println("  : " + hashtags)
-            println("  : " + reply)
-            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json))
-          case TwitterStatusDelete (statusRef, json) =>
-            println("Deleted: " + statusRef)
-            Some (TwitterStatusDelete (statusRef, json))
-          case event: TwitterEvent =>
-            println("Unhandled: " + event)
-            None
-        }) map (_ get)
-    case Some(x) =>
-      println("Unsupported structure: " + x)
-      None
-    case None =>
-      println("Bad event: " + json)
-      None
-  }
-
   val rt_tag = """{
      "new_id_str":"1538354965381120",
      "geo":null,
@@ -418,6 +384,40 @@ object ParseStuffData {
    }
    """.replace("\n", "").trim
 
+  def parse(json: Option[JValue]): Option[TwitterEvent] = json match {
+    case Some(json: JValue) =>
+      println("Recv: " + json)
+      val list = JsonTransformer getEvent json
+      if (list.isEmpty) {
+        println ("No hits: " + list)
+        None
+      } else
+        list map (_ match {
+          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json) =>
+            println("OK: " + status)
+            println("  : " + meta)
+            println("  : " + user)
+            println("  : " + retweet)
+            println("  : " + urls)
+            println("  : " + mentions)
+            println("  : " + hashtags)
+            println("  : " + reply)
+            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json))
+          case TwitterStatusDelete (statusRef, json) =>
+            println("Deleted: " + statusRef)
+            Some (TwitterStatusDelete (statusRef, json))
+          case event: TwitterEvent =>
+            println("Unhandled: " + event)
+            None
+        }) map (_ get)
+    case Some(x) =>
+      println("Unsupported structure: " + x)
+      None
+    case None =>
+      println("Bad event: " + json)
+      None
+  }
+
   val delete = """{
     "delete":{
       "status":{
@@ -452,6 +452,26 @@ class ParseStuff {
 
   @Test def parseReplyAndMention {
     parse(reply_mention)
+  }
+
+  @Test def parseReplyUser {
+    parse(reply_mention) match {
+      case Some(TwitterStatusUpdate
+                    (_,
+                     _,
+                     Some(TOUser(id,
+                                 screen_name,
+                                 name,
+                                 Some(description),
+                                 url,
+                                 Some(decoration))),
+                     _,
+                     _,
+                     _,
+                     _,
+                     _)) => println(decoration)
+      case x => Assert fail ("Not parsed: " + x)
+    }
   }
 
   @Test def parseNewRTAndTag {

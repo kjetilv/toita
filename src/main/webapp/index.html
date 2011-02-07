@@ -3,21 +3,42 @@
   <!--<lift:surround with="default" xmlns:lift="http://www.w3.org/1999/XSL/Transform">-->
   <style type="text/css">
     .diagnostics { font-style:italic }
-    .followees   { font-style:oblique }
-    .followees u li { visibility:hidden }
+    .people { font-style:oblique }
+    .people u li { visibility:hidden }
+    .peoplearea {}
+
+    .user { float:right; width:100% }
 
     .tweets    { float:right; width:100% }
     .tweetarea { width:100% }
-    .tweetimg  { float:left; width:20% }
-    .tweetname { float:left; width:80%; height:20%; text-align:left }
-    .tweettext { float:left; width:80%; height:80%; text-align:right }
+    .peoplearea { width:100% }
+    .profileimg { float:left; width:20% }
+    .profilename { float:left; width:80%; height:20%; text-align:left }
+    .statustext { float:left; width:80%; height:80%; text-align:right }
   </style>
 
+  <!--
   <div class="followees">
-    <lift:with-param name="followees">
+    <lift:with-param name="people">
       <lift:comet type="FollowedComet" name="FollowedComet">
         <f:list/>
       </lift:comet>
+    </lift:with-param>
+  </div>
+  -->
+
+  <div class="people">
+    <lift:with-param name="people">
+      <div id="people-area" class="lift:comet?type=PeopleComet;name=PeopleComet peoplearea">
+        <div class="user">
+          <div id="people-name" class="profilename">
+            <span id="#people-name"/>
+          </div>
+          <div id="people-img" class="profileimg">
+            <span id="#people-img" width="16" height="16"/>
+          </div>
+        </div>
+      </div>
     </lift:with-param>
   </div>
 
@@ -34,18 +55,18 @@
 
   <lift:with-param name="content">
     <div class="tweets">
-      <div id="tweetarea" class="lift:comet?type=UserStreamTemplatedComet;name=UserStreamTemplate tweetarea">
-        <tweetarea count="10">
-          <div id="tweetimg" class="tweetimg">
-            <span id="#tweetimg" width="32" height="32"/>
+      <div id="tweet-area" class="lift:comet?type=UserStreamTemplatedComet;name=UserStreamTemplate tweetarea">
+        <tweet-area count="10">
+          <div id="tweet-img" class="profileimg">
+            <span id="#tweet-img" width="32" height="32"/>
           </div>
-          <div id="tweetname" class="tweetname">
-            <span id="#tweetname"/>
+          <div id="tweet-name" class="profilename">
+            <span id="#tweet-name"/>
           </div>
-          <div id="tweettext" class="tweettext">
-            <span id="#tweettex"/>
+          <div id="tweet-text" class="statustext">
+            <span id="#tweet-text"/>
           </div>
-        </tweetarea>
+        </tweet-area>
       </div>
       <!--
       <lift:comet type="UserStreamComet" name="UserStream">

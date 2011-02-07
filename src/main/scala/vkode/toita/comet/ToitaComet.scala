@@ -4,7 +4,11 @@ import scalaz.Options
 import net.liftweb.common.Loggable
 import vkode.toita.backend.{ToitaRegister, ToitaSessionUser}
 import net.liftweb.http.CometActor
-import xml.NodeSeq
+import java.util.Date
+import org.joda.time.DateTime
 
 trait ToitaComet
-    extends CometActor with ToitaRegister with ToitaSessionUser with Loggable with Options
+    extends CometActor with ToitaRegister with ToitaSessionUser with Loggable with Options {
+
+  protected implicit def date2Yoda (date: Date) = new DateTime(date)
+}

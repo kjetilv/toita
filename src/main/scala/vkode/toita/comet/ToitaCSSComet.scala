@@ -16,18 +16,9 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 
-trait ToitaCSSComet {
-
-  this: CometActor =>
-
-  protected val area: String
+trait ToitaCSSComet extends ToitaComet {
 
   override def render: RenderOut = getNodeSeq
 
   protected def getNodeSeq: NodeSeq
-
-  protected def updated {
-    partialUpdate(SetHtml(area, getNodeSeq))
-    reRender(false)
-  }
 }

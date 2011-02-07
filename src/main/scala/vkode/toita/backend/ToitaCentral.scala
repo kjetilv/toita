@@ -4,7 +4,7 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import Actor._
 import scala.collection.mutable.Map
-import vkode.toita.comet.{UserStream, FollowedComet, DiagnosticsComet}
+import vkode.toita.comet.{PeopleComet, UserStream, FollowedComet, DiagnosticsComet}
 
 class ToitaCentral extends Actor with Options {
 
@@ -17,6 +17,10 @@ class ToitaCentral extends Actor with Options {
       setup(actor)
     case CometDown(actor: FollowedComet) =>
       dismantle(followerTrackers, actor.session)
+    case CometUp(actor: PeopleComet) =>
+      setup(actor)
+    case CometDown(actor: PeopleComet) =>
+      dismantle(peopleTrackers, actor.session)
     case CometUp(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians :+ diagnostics
     case CometDown(diagnostics: DiagnosticsComet) =>
@@ -34,15 +38,22 @@ class ToitaCentral extends Actor with Options {
 
   val followerTrackers = Map[UserSession,ActorRef]()
 
-  private def setup (userStream: UserStream) = statusTracker(userStream) ! Tracker.Add(userStream)
+  val peopleTrackers = Map[UserSession,ActorRef]()
 
-  private def setup (followees: FollowedComet) = followerTracker(followees) ! Tracker.Add(followees)
+  private def setup (userStream: UserStream) = statusTracker(userStream) ! Tracker.Add(userStream)
 
   private def statusTracker(userStream: UserStream) =
     statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
 
+  private def setup (followees: FollowedComet) = followerTracker(followees) ! Tracker.Add(followees)
+
   private def followerTracker(followees: FollowedComet) =
-    followerTrackers getOrElseUpdate (followees.session, newFollowerTracker(getEmitter(followees)))
+    followerTrackers getOrElseUpdate (followees.session, newPeopleTracker(getEmitter(followees)))
+
+  private def setup (people: PeopleComet) = peopleTracker(people) ! Tracker.Add(people)
+
+  private def peopleTracker(people: PeopleComet) =
+    followerTrackers getOrElseUpdate (people.session, newPeopleTracker(getEmitter(people)))
 
   private def getEmitter(sessionUser: ToitaSessionUser) = StreamEmitter(sessionUser.session)
 
@@ -52,7 +63,7 @@ class ToitaCentral extends Actor with Options {
     statusTrackerRef
   }
 
-  private def newFollowerTracker(emitter: StreamEmitter) = {
+  private def newPeopleTracker(emitter: StreamEmitter) = {
     val followerTrackerRef = actorOf (new FollowerTracker (emitter)).start
     emitter addReceiver (followerTrackerRef, classOf[TwitterFriends], classOf[TwitterFriend])
     followerTrackerRef
