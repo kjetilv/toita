@@ -103,7 +103,7 @@ object Rendrer {
   private def textInsert(text: String, col: Option[String], idx: (Int, Int)) = idx match {
     case (a, b) =>
       val style = "color:#" + (col getOrElse "333333")
-      Insert (a, b, NodeSeq fromSeq <span>text.substring(a, b)</span>)
+      Insert (a, b, NodeSeq fromSeq <span>{text.substring(a, b)}</span>)
   }
 
   private def computeTextIndices (text: String, indexed: List[Indexed], inserts: List[Insert]): List[(Int, Int)] =
@@ -122,7 +122,7 @@ object Rendrer {
     user match {
       case TOUser(_, screenName, _, _, _, Some(TOUserDecoration(backgr, backgrUrl, textCol, linkCol))) =>
         val userStyle = "color:#" + (linkCol getOrElse "333333")
-        (<span style={ userStyle }>screenName</span>).toList ++ (inserts(status, reply, textCol, linkCol, indexeds: _*) map (_.node))
+        (<span style={ userStyle }>{ screenName }</span>).toList ++ (inserts(status, reply, textCol, linkCol, indexeds: _*) map (_.node))
     }
 
   private def inserts(status: TOStatus,

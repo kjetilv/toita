@@ -35,7 +35,7 @@ class UserStreamTemplatedComet extends UserStream with ToitaCSSComet {
                                  _) =>
           "#tweet-img" #> <img src={ imageUrl } alt={ name } width="48" height="48"/> &
           "#tweet-name" #> <span>{name}</span> &
-          "#tweet-text" #> <span>{ text }</span>
+          "#tweet-text" #> (NodeSeq fromSeq (Rendrer textOf twitterStatusUpdate))
       }
     case x =>
       "#tweet-img" #> <span>No logo</span> &
