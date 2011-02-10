@@ -41,16 +41,22 @@ class PeopleComet extends ToitaCSSComet {
       <span>No friends!</span>
 
   private def transformFun(user: TOUser): CssBindFunc = user match {
-    case TOUser(id, screen_name, name, desc, imageurl, Some(TOUserDecoration(profile_use_background_image,
-                                                                             profile_background_image_url,
-                                                                             profile_text_color,
-                                                                             profile_link_color,
-                                                                             profile_sidebar_border_color,
-                                                                             profile_sidebar_fill_color))) =>
-      "#people-name" #> <span>{ name }</span>
-      "#people-img" #> <img src={ imageurl } alt={ name }/>
+    case TOUser(id, screen_name, name, desc, imageurl, userDeco) =>
+      userDeco match {
+        case Some(TOUserDecoration(profile_use_background_image,
+                                   profile_background_image_url,
+                                   profile_text_color,
+                                   profile_link_color)) =>
+          val style = "color:#" + (profile_link_color getOrElse "3333ff")
+          "#people-name" #> <span style={ style }>{ screen_name }</span> &
+          "#people-img" #> <img src={ imageurl } alt={ name }/>
+        case None =>
+          "#people-name" #> <span>{ screen_name }</span> &
+          "#people-img" #> <img src={ imageurl } alt={ name }/>
+      }
     case x =>
-      "#people-name" #> <span>No name</span>
+      println(x)
+      "#people-name" #> <span>No name</span> &
       "#people-img" #> <span>No logo</span>
   }
 }

@@ -100,11 +100,13 @@ object Rendrer {
     override val indices = List(a, b)
   }
 
-  private def textInsert(text: String, idx: (Int, Int)) = idx match {
-    case (a, b) => Insert (a, b, Text (text.substring(a, b)))
+  private def textInsert(text: String, col: Option[String], idx: (Int, Int)) = idx match {
+    case (a, b) =>
+      val style = "color:#" + (col getOrElse "333333")
+      Insert (a, b, NodeSeq fromSeq <span>text.substring(a, b)</span>)
   }
 
-  def computeTextIndices (text: String, indexed: List[Indexed], inserts: List[Insert]): List[(Int, Int)] =
+  private def computeTextIndices (text: String, indexed: List[Indexed], inserts: List[Insert]): List[(Int, Int)] =
     indexed match {
       case Nil => List(0 → text.length)
       case single :: Nil =>
@@ -116,38 +118,101 @@ object Rendrer {
                                         indexed map (_.b) zip (indexed.tail map (_.a))))
     }
 
-  private def nodes(status: TOStatus,
-                    reply: Option[TOReply],
-                    indexeds: List[Indexed]*): List[NodeSeq] =
-    inserts(status, reply, indexeds: _*) map (_.node)
+  private def nodes(user: TOUser, status: TOStatus, reply: Option[TOReply], indexeds: List[Indexed]*): List[NodeSeq] =
+    user match {
+      case TOUser(_, screenName, _, _, _, Some(TOUserDecoration(backgr, backgrUrl, textCol, linkCol))) =>
+        val userStyle = "color:#" + (linkCol getOrElse "333333")
+        (<span style={ userStyle }>screenName</span>).toList ++ (inserts(status, reply, textCol, linkCol, indexeds: _*) map (_.node))
+    }
 
   private def inserts(status: TOStatus,
                       reply: Option[TOReply],
+                      textCol: Option[String],
+                      linkCol: Option[String],
                       indexeds: List[Indexed]*): List[Insert] = {
     val entityIndices = (List[Indexed]() /: indexeds) (_ ++ _) sortWith (_ before _)
     val replyIndex = indexed(reply, status.text)
-    val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert _)
+    val entityInserts = resolveEntities (replyIndex, entityIndices) map (entityInsert (_, linkCol))
     val textIndices = computeTextIndices (status.text, entityIndices, entityInserts)
-    val textInserts = textIndices map (textInsert (status.text, _))
+    val textInserts = textIndices map (textInsert (status.text, textCol, _))
     (entityInserts ++ textInserts) sortWith (_ before _)
   }
 
   def deleteFlag(deleted: Boolean): Elem = (if (deleted) <span>[DELETED]</span> else <span/>)
 
-  private def textOf(tsu: TwitterStatusUpdate): Elem =
+  def textOf(tsu: TwitterStatusUpdate): Elem =
     <span> {
       tsu match {
-        case TwitterStatusUpdate(status, meta, usr, _, TOEntities(hashtags, mentions, urls), reply, deleted, _) =>
-          user(usr) :: (nodes(status, reply, hashtags, mentions, urls) :+ deleteFlag(deleted))
+        case TwitterStatusUpdate(status, meta, Some(usr), _, TOEntities(hashtags, mentions, urls), reply, deleted, _) =>
+          nodes(usr, status, reply, hashtags, mentions, urls) :+ deleteFlag(deleted)
         case _ => <span/>
       }
       }
     </span>
 
-  private def user(usr: Option[TOUser]) = usr match {
-    case Some(usr) => <strong>{ usr.screen_name } </strong>
-    case None => <span/>
-  }
+  def textRender(tsu: TwitterStatusUpdate): Elem =
+    <span> {
+      tsu match {
+        case TwitterStatusUpdate(status,
+                                 meta,
+                                 Some(user),
+                                 /*                                 Some(TOUser(id,
+           screenName,
+           name,
+           description,
+           profileImage,
+           Some(TOUserDecoration(useBackgroundImage,
+                                 backgroundImageUrl,
+                                 profileTextColor,
+                                 profileLinkColor)))),*/
+                                 rt,
+                                 TOEntities(hashtags, mentions, urls),
+                                 reply,
+                                 deleted,
+                                 json) =>
+          rt match {
+            case Some(TwitterStatusUpdate(rtStatus,
+                                          rt,
+                                          Some(rtUser),
+                                          /*                                          Some(TOUser(rtId,
+                    rtScreenName,
+                    rtName,
+                    rtDescription,
+                    rtProfileImage,
+                    Some(TOUserDecoration(rtUseBackgroundImage,
+                                          rtBackgroundImageUrl,
+                                          rtProfileTextColor,
+                                          rtProfileLinkColor)))),*/
+                                          _,
+                                          TOEntities(rtHashtags,
+                                                     rtMentions,
+                                                     rtUrls),
+                                          rtReply,
+                                          rtDeleted,
+                                          _)) =>
+              (nodes(rtUser,
+                     rtStatus,
+                     rtReply,
+                     rtHashtags,
+                     rtMentions,
+                     rtUrls) :+ deleteFlag(rtDeleted))
+            case None =>
+              (nodes(user,
+                     status,
+                     reply,
+                     hashtags,
+                     mentions,
+                     urls) :+ deleteFlag(deleted))
+          }
+        case _ => <span/>
+      }
+      }
+    </span>
+  //
+  //  private def user(usr: Option[TOUser]) = usr match {
+  //    case Some(usr) => <strong>{ usr.screen_name } </strong>
+  //    case None => <span/>
+  //  }
 
   private def resolveEntities(replyIndex: Option[TOMention], indices: List[Indexed]) =
     (replyIndex → indices) match {
@@ -179,9 +244,15 @@ object Rendrer {
       case _ => idxs.reverse
     }
 
-  private def entityInsert (entity: Indexed) = Insert(entity.a, entity.b, entity match {
-    case TOMention(_, name, id, _) => <a name={name} href={"http://twitter.com/" + id}>@{id}</a>
-    case TOURL(_, url) => <a href={url}>{url}</a>
-    case TOHashtag(_, text) => <a name={text} href={"http://twitter.com/search?q=%23" + text}>#{text}</a>
-  })
+  private def entityInsert (entity: Indexed, linkCol: Option[String]) = {
+    val color = "color:#" + (linkCol getOrElse "3333FF")
+    Insert(entity.a, entity.b, entity match {
+      case TOMention(_, name, id, _) =>
+        <a style={color} name={name} href={"http://twitter.com/" + id}>@{id}</a>
+      case TOURL(_, url) =>
+        <a style={color} href={url}>{url}</a>
+      case TOHashtag(_, text) =>
+        <a style={color} name={text} href={"http://twitter.com/search?q=%23" + text}>#{text}</a>
+    })
+  }
 }

@@ -33,7 +33,6 @@ object JsonTransformer extends Logging {
   }
 
   private implicit val fmtz = new DefaultFormats {
-
     override protected def dateFormatter = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy")
   }
 
@@ -52,16 +51,12 @@ object JsonTransformer extends Logging {
       case x => Nil
     }) filter (_ isDefined) map (_ get)
 
-  private def extract[T](json: JValue, tp: Class[T]): Option[T] = {
-    implicit val mf = Manifest classType tp
-    Extraction extractOpt json
-  }
-
   private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
     json.extractOpt[TOStatus] map (status => {
+      val userOption = (json \ "user").extractOpt[TOUser]
       val user = (json \ "user").extractOpt[TOUserDecoration] match {
-        case None => (json \ "user").extractOpt[TOUser]
-        case deco => (json \ "user").extractOpt[TOUser] map (_ copy (decoration = deco))
+        case None => userOption
+        case deco => userOption map (_ copy (decoration = deco))
       }
       val meta = json.extract[TOMeta]
       val retweeted = json \ "retweeted_status" match {

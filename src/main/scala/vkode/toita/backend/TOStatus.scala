@@ -73,9 +73,7 @@ case class TOUser(id: BigInt,
 case class TOUserDecoration(profile_use_background_image: Boolean,
                             profile_background_image_url: Option[String],
                             profile_text_color: Option[String],
-                            profile_link_color: Option[String],
-                            profile_sidebar_border_color: Option[String],
-                            profile_sidebar_fill_color: Option[String])
+                            profile_link_color: Option[String])
 
 case class TOFollowEvent(target: TOUser,
                          source: TOUser,

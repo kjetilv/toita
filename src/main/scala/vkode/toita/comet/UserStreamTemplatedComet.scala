@@ -23,18 +23,20 @@ class UserStreamTemplatedComet extends UserStream with ToitaCSSComet {
   }) getOrElse <span>Loading...</span>
 
   private def transformFun(item: StreamItem[TwitterStatusUpdate]): CssBindFunc = item match {
-    case StreamItem(TwitterStatusUpdate(TOStatus(sid, text),
-                                        meta,
-                                        Some(TOUser(uid, screen_name, name, _, imageUrl, _)),
-                                        retweet,
-                                        _,
-                                        _,
-                                        deleted,
-                                        _),
-                    _, _, _, _, _, _) =>
-      "#tweet-img" #> <img src={ imageUrl } alt={ name } width="48" height="48"/> &
-      "#tweet-name" #> <span>{name}</span> &
-      "#tweet-text" #> <span>{text}</span>
+    case StreamItem(twitterStatusUpdate, _, _, _, _, _, _) =>
+      twitterStatusUpdate match {
+        case TwitterStatusUpdate(TOStatus(sid, text),
+                                 meta,
+                                 Some(TOUser(uid, screen_name, name, description, imageUrl, deco)),
+                                 retweet,
+                                 _,
+                                 _,
+                                 deleted,
+                                 _) =>
+          "#tweet-img" #> <img src={ imageUrl } alt={ name } width="48" height="48"/> &
+          "#tweet-name" #> <span>{name}</span> &
+          "#tweet-text" #> <span>{ text }</span>
+      }
     case x =>
       "#tweet-img" #> <span>No logo</span> &
       "#tweet-name" #> Text("No name") &
