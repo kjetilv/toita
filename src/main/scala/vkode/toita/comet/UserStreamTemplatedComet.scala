@@ -19,22 +19,26 @@ class UserStreamTemplatedComet extends UserStream with ToitaCSSComet {
 
   private val emptyRender = "#tweet-img" #> <span>No logo</span> &
                             "#tweet-name" #> <span>No name</span>
-                            "#tweet-text" #> <span>No slogan</span>
-                            "#tweet-retweeter" #> <span/>
+  "#tweet-text" #> <span>No slogan</span>
+  "#tweet-retweeter" #> <span/>
 
-  protected override def getNodeSeq: NodeSeq = stream map (_ items) map (_ take 5) map (_ match {
-    case Nil => Text("No tweets")
-    case items => items map (transformFun (_)) flatMap (_ (defaultXml))
-  }) getOrElse <span>Loading...</span>
+  private def tweetCount = 5
+
+  private def applyToDefaultXml(transformFun: NodeSeq => NodeSeq) = transformFun (defaultXml)
+
+  private def renderItems(items: List[StreamItem[TwitterStatusUpdate]]) =
+    items map (transformFun _) flatMap (applyToDefaultXml _)
+
+  protected override def getNodeSeq: NodeSeq = stream map (_ items) map (_ take tweetCount) map (_ match {
+    case Nil => <span>No tweets</span>
+    case items => renderItems(items)
+  }) getOrElse <span>Connecting ...</span>
 
   private def transformFun(item: StreamItem[TwitterStatusUpdate]): CssBindFunc = item match {
-    case StreamItem(update, _, _, _, _, _, _) =>
-      update match {
-        case TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) =>
-          render(retweet, user)
-        case update =>
-          render(update, None)
-      }
+    case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) , _, _, _, _, _, _) =>
+      render(retweet, user)
+    case StreamItem(tweet, _, _, _, _, _, _) =>
+      render(tweet, None)
     case x =>
       emptyRender
   }
