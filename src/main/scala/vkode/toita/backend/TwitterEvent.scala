@@ -16,8 +16,7 @@ case class TwitterFriends(friends: TOFriends,
 case class TwitterFriend(friend: TOUser,
                          override val json: JValue) extends TwitterEvent
 
-case class TwitterFollower(event: TOFollowEvent,
-                           override val json: JValue) extends TwitterEvent
+case class TwitterFollower(event: TOFollowEvent, override val json: JValue) extends TwitterEvent
 
 case class TwitterStatusDelete(status: TOStatusRef,
                                override val json: JValue) extends TwitterEvent

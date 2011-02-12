@@ -81,4 +81,6 @@ class TwitterSession (userSession: UserSession) extends Options {
 
   private def lineIterator(stream: InputStream): Iterator[String] =
     (Source fromInputStream stream).getLines filterNot(_ == null) map (_.trim) filterNot (_.isEmpty)
+
+  override def toString = getClass.getSimpleName + "[" + userSession + "]"
 }
