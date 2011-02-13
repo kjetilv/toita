@@ -12,10 +12,13 @@ import net.liftweb.common._
 import net.liftweb.util._
 import Helpers._
 import SHtml._
+import akka.actor.Actor
 
-class UserStreamComet extends ToitaCSSComet {
+class UserStreamComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 
-  override protected val eventTypes = classOf[TwitterStatusUpdate] :: classOf[TwitterStatusDelete] :: Nil
+  override val eventTypes = classOf[TwitterStatusUpdate] :: classOf[TwitterStatusDelete] :: Nil
+
+  override def tracker(twitterService: TwitterAsynchService) = Some(Actor actorOf (new StatusTracker(twitterService)))
 
   protected val area = "tweetarea"
 

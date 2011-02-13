@@ -8,20 +8,20 @@ import xml.NodeSeq
 
 object DiagnosticsComet {
 
-  trait Timed {
+  sealed trait DiagnosticsEvent {
     def timestamp: Long = System.currentTimeMillis
   }
 
-  case object StreamUp extends Timed
+  case object StreamUp extends DiagnosticsEvent
 
-  case object StreamDown extends Timed
+  case object StreamDown extends DiagnosticsEvent
 
-  case object LookupStarted extends Timed
+  case object LookupStarted extends DiagnosticsEvent
 
-  case object LookupEnded extends Timed
+  case object LookupEnded extends DiagnosticsEvent
 }
 
-class DiagnosticsComet extends ToitaCSSComet {
+class DiagnosticsComet extends ToitaCSSComet with ToitaRegister {
 
   val streamCount = new AtomicInteger
 

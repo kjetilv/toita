@@ -18,10 +18,8 @@ object StreamEmitter {
   def apply(session: UserSession) = streamEmitters getOrElseUpdate (session, new StreamEmitter (session))
 }
 
-class StreamEmitter(userSession: UserSession, required: Class[_]*)
-    extends Logging
-            with TwitterAsynchService
-            with TwitterService {
+class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]*)
+    extends Logging with TwitterAsynchService with TwitterService {
 
   def user = events(twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
     case (tweet: TwitterStatusUpdate) :: _ => Some(tweet.user)
@@ -34,7 +32,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
 
   def status(id: BigInt) = message(twitterSession lookup id)
 
-  def addReceiver(ref: ActorRef, types: Class[_]*) {
+  def addReceiver(ref: ActorRef, types: List[Class[_ <: TwitterEvent]]) {
     receivers = (receivers /: types) ((m, t) => {
       val set = m getOrElse (t, Set())
       m + (t -> (set + ref))
@@ -48,13 +46,13 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
 
   private val twitterSession= new TwitterSession(userSession)
 
-  private val requiredClasses = required.toSet[Class[_]]
+  private val requiredClasses = required.toSet[Class[_ <: TwitterEvent]]
 
   private lazy val twitterStream = twitterSession.userStream
 
   private val streamStarted = new AtomicBoolean
 
-  private var receivers: Map[Class[_], Set[ActorRef]] = Map()
+  private var receivers: Map[Class[_ <: TwitterEvent], Set[ActorRef]] = Map()
 
   private def shouldStartStream =
     !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
@@ -77,10 +75,10 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
     }, "Emitter for " + twitterSession).start
 
   private def message (line: String) = events(line) groupBy (_.getClass) foreach (_ match {
-    case (eventType, events) => ship(eventType, events)
+    case (eventType, events) => ship(eventType asSubclass classOf[TwitterEvent], events)
   })
 
-  private def ship(eventType: Class[_], events: List[TwitterEvent]) {
+  private def ship(eventType: Class[_ <: TwitterEvent], events: List[TwitterEvent]) {
     receivers get (eventType) match {
       case Some (receivers) =>
         ship(receivers, events)

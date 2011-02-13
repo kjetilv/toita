@@ -13,10 +13,13 @@ import net.liftweb.common._
 import net.liftweb.util._
 import Helpers._
 import SHtml._
+import akka.actor.Actor
 
-class PeopleComet extends ToitaCSSComet {
+class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 
-  override protected val eventTypes = classOf[TwitterFriends] :: classOf[TwitterFriend] :: Nil
+  override val eventTypes = classOf[TwitterFriends] :: classOf[TwitterFriend] :: Nil
+
+  override def tracker(twitterService: TwitterAsynchService) = Some(Actor.actorOf(new PeopleTracker(twitterService)))
 
   private var users = Map[BigInt,TOUser]()
 

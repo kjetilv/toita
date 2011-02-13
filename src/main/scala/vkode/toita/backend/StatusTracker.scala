@@ -1,14 +1,10 @@
 package vkode.toita.backend
 
-import akka.actor.Actor
-import akka.util.Logging
 import vkode.toita.backend.Tracker.TrackerControl
 
-class StatusTracker (twitterService: TwitterAsynchService)
-    extends Tracker with Actor with Logging {
+class StatusTracker (val twitterService: TwitterAsynchService) extends Tracker {
 
-  override def preStart =
-    log.info(this + " starts")
+  override def preStart = log.info(this + " starts")
 
   protected def receive = {
     case msg: TrackerControl => control(msg)
@@ -35,6 +31,8 @@ class StatusTracker (twitterService: TwitterAsynchService)
       }
   }
 
+  private def updateConversation = send(TStream(roots, statusMap, repliesTo))
+
   private var statusMap = Map[BigInt, TwitterStatusUpdate]()
 
   private var replies = Set[BigInt]()
@@ -46,6 +44,4 @@ class StatusTracker (twitterService: TwitterAsynchService)
   private def hasReplies (id: BigInt) = repliesTo contains id
 
   private def roots = statusMap.keys.toList diff replies.toList sortWith (_ > _)
-
-  private def updateConversation = send(TStream(roots, statusMap, repliesTo))
 }

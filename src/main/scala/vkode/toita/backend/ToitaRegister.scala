@@ -1,17 +1,23 @@
 package vkode.toita.backend
 
 import akka.actor.Actors._
+import vkode.toita.comet.ToitaComet
 import net.liftweb.http.CometActor
+import akka.actor.ActorRef
 
 trait ToitaRegister {
 
-  this: CometActor =>
+  this: ToitaComet =>
 
   type EventTypes = List[Class[_ <: TwitterEvent]]
 
-  protected val eventTypes: EventTypes = Nil
+  val eventTypes: EventTypes = Nil
 
-  override protected def localSetup() = broadcast (CometUp(this, eventTypes))
+  val cometActor: CometActor = this
+
+  def tracker (twitterService: TwitterAsynchService): Option[ActorRef] = None
+
+  override protected def localSetup() = broadcast (CometUp(this))
 
   override protected def localShutdown() = broadcast (CometDown(this))
 

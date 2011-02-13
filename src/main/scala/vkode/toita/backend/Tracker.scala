@@ -2,6 +2,7 @@ package vkode.toita.backend
 
 import net.liftweb.http.CometActor
 import akka.util.Logging
+import akka.actor.Actor
 
 object Tracker {
 
@@ -12,21 +13,23 @@ object Tracker {
   case class Remove(ca: CometActor) extends TrackerControl
 }
 
-trait Tracker {
-  this: Logging =>
+trait Tracker extends Logging with Actor {
 
   import Tracker._
 
-  private var cas: List[CometActor] = Nil
+  val twitterService: TwitterAsynchService
 
-  protected def send(msg: Any) = cas foreach (_ ! msg)
+  private var cometActors: List[CometActor] = Nil
+
+  protected final def send(msg: Any) =
+    cometActors foreach (_ ! msg)
 
   def control(msg: TrackerControl) = msg match {
     case Add(ca) =>
-      cas = ca :: cas
+      cometActors = ca :: cometActors
       log.info(this + " added " + ca)
     case Remove(ca) =>
-      cas = cas filterNot (_ == ca)
+      cometActors = cometActors filterNot (_ == ca)
       log.info(this + " removed " + ca)
   }
 }

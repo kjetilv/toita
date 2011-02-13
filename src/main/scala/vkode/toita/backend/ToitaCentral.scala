@@ -3,27 +3,23 @@ package vkode.toita.backend
 import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import Actor._
-import scala.collection.mutable.Map
-import vkode.toita.comet.{UserStreamComet, PeopleComet, DiagnosticsComet}
+import scala.collection.mutable.{Map => MutMap}
+import vkode.toita.comet.DiagnosticsComet
 
 class ToitaCentral extends Actor with Options {
 
-  type EventTypes = List[Class[_ <: TwitterEvent]]
+  implicit def trackerToKey (trackable: ToitaTrackable) = trackable.session → trackable.eventTypes
 
   override def receive = {
-    case CometUp(actor: UserStreamComet, eventTypes) =>
-      setup(actor, eventTypes)
-    case CometDown(actor: UserStreamComet) =>
-      dismantle(statusTrackers, actor.session)
-    case CometUp(actor: PeopleComet, eventTypes) =>
-      setup(actor)
-    case CometDown(actor: PeopleComet) =>
-      dismantle(peopleTrackers, actor.session)
-    case CometUp(diagnostics: DiagnosticsComet, eventTypes) =>
+    case msg: DiagnosticsComet.DiagnosticsEvent => diagnostic(msg)
+    case CometUp(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians :+ diagnostics
     case CometDown(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians filterNot (_ == diagnostics)
-    case msg: DiagnosticsComet.Timed => diagnostic(msg)
+    case CometUp(cometActor: ToitaTrackable) =>
+      setup(cometActor)
+    case CometDown(cometActor: ToitaTrackable) =>
+      dismantle(cometActor)
     case x =>
       log.warn("Unhandled: " + x)
   }
@@ -32,42 +28,49 @@ class ToitaCentral extends Actor with Options {
 
   var diagnosticians = List[DiagnosticsComet]()
 
-  val trackers = Map[UserSession,ActorRef]()
+  val trackerRefs = MutMap[(UserSession, List[Class[_ <: TwitterEvent]]),ActorRef]()
 
-  val statusTrackers = Map[UserSession,ActorRef]()
+  private def setup (trackable: ToitaTrackable) =
+    trackerRefFor(trackable) foreach (_ ! Tracker.Add(trackable.cometActor))
 
-  val peopleTrackers = Map[UserSession,ActorRef]()
+  private def trackerRefFor(trackable: ToitaTrackable): Option[ActorRef] =
+    trackerRefs get trackable match {
+      case None =>
+        newTrackerRef(trackable, getEmitter(trackable)) match {
+          case None =>
+            log.warn("No tracker could be constructed for " + trackable)
+            None
+          case newTrackerRef =>
+            trackerRefs (trackable) = newTrackerRef.get
+            newTrackerRef
+        }
+      case trackerRef => trackerRef
+    }
 
-  private def setup (userStream: UserStreamComet, eventTypes: EventTypes) =
-    statusTracker(userStream) ! Tracker.Add(userStream)
+  private def getEmitter(trackable: ToitaTrackable) = StreamEmitter(trackable.session)
 
-  private def setup (people: PeopleComet) = peopleTracker(people) ! Tracker.Add(people)
-
-  private def statusTracker(userStream: UserStreamComet) =
-    statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
-
-  private def peopleTracker(people: PeopleComet) =
-    peopleTrackers getOrElseUpdate (people.session, newPeopleTracker(getEmitter(people)))
-
-  private def getEmitter(sessionUser: ToitaSessionUser) = StreamEmitter(sessionUser.session)
-
-  private def newStatusTracker(emitter: StreamEmitter) = {
-    val statusTrackerRef = actorOf (new StatusTracker(emitter)).start
-    emitter addReceiver(statusTrackerRef, classOf[TwitterStatusUpdate], classOf[TwitterStatusDelete])
-    statusTrackerRef
+  private def newTrackerRef(trackable: ToitaTrackable, emitter: StreamEmitter): Option[ActorRef] = {
+    trackable.tracker(emitter) match {
+      case Some(trackerRef) =>
+        trackerRef.start
+        emitter addReceiver(trackerRef, trackable.eventTypes)
+        log.info("Tracker for " + trackable + " started: " + trackerRef +
+                 ", events of " + trackable.eventTypes.mkString(","))
+        Some(trackerRef)
+      case None =>
+        log.warn("No tracker for " + trackable);
+        None
+    }
   }
 
-  private def newPeopleTracker(emitter: StreamEmitter) = {
-    val followerTrackerRef = actorOf (new FollowerTracker (emitter)).start
-    emitter addReceiver (followerTrackerRef, classOf[TwitterFriends], classOf[TwitterFriend])
-    followerTrackerRef
-  }
-
-  private def dismantle (m: Map[UserSession,ActorRef], key: UserSession) =
-    m get key match {
-      case Some(actor) =>
-        actor.stop
-        m - key
-      case None => m
+  private def dismantle (trackable: ToitaTrackable) =
+    trackerRefs get trackable match {
+      case Some(trackerRef) =>
+        log.info("Dismantling tracker for " + trackable + ": " + trackerRef)
+        trackerRefs -= trackable
+        trackerRef ! Tracker.Remove(trackable.cometActor)
+        trackerRef.stop
+      case None =>
+        log.warn("No tracker for " + trackable + " was registered");
     }
 }
