@@ -13,19 +13,27 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 
-class UserStreamComet extends UserStream with ToitaCSSComet {
+class UserStreamComet extends ToitaCSSComet {
+
+  override protected val eventTypes = classOf[TwitterStatusUpdate] :: classOf[TwitterStatusDelete] :: Nil
 
   protected val area = "tweetarea"
 
-  private def tweetCount = 5
+  private def tweetCount = 10
+
+  protected var stream: Option[TStream[TwitterStatusUpdate]] = None
 
   protected override def getNodeSeq: NodeSeq = stream map (_ items) map (_ take tweetCount) map (_ match {
     case Nil => <span>No tweets</span>
     case items => Rendrer renderStatusStream (items, defaultXml)
   }) getOrElse <span>Connecting ...</span>
 
-  protected def updated {
-    partialUpdate(SetHtml(area, getNodeSeq))
-    reRender(false)
+  override def lowPriority: PartialFunction[Any, Unit] = {
+    case update: TStream[TwitterStatusUpdate] =>
+      stream = Option(update)
+      partialUpdate(SetHtml(area, getNodeSeq))
+      reRender(false)
   }
+
+  override def toString = getClass.getSimpleName + "[name:" + name + " " + System.identityHashCode(this) + "]"
 }

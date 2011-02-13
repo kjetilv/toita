@@ -7,10 +7,13 @@ trait ToitaRegister {
 
   this: CometActor =>
 
-  override protected def localSetup() = broadcast (CometUp(this))
+  type EventTypes = List[Class[_ <: TwitterEvent]]
+
+  protected val eventTypes: EventTypes = Nil
+
+  override protected def localSetup() = broadcast (CometUp(this, eventTypes))
 
   override protected def localShutdown() = broadcast (CometDown(this))
 
-  private def broadcast (msg: Any) =
-    registry.actorsFor[ToitaCentral] foreach (_ ! msg)
+  private def broadcast (msg: Any) = registry.actorsFor[ToitaCentral] foreach (_ ! msg)
 }

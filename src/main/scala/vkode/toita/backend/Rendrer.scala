@@ -3,7 +3,7 @@ package vkode.toita.backend
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import xml.{Elem, NodeSeq, Text}
+import xml.{Elem, NodeSeq}
 import net.liftweb.util.CssBindFunc
 import net.liftweb.http._
 import net.liftweb.common._

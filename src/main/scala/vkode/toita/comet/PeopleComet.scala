@@ -16,6 +16,8 @@ import SHtml._
 
 class PeopleComet extends ToitaCSSComet {
 
+  override protected val eventTypes = classOf[TwitterFriends] :: classOf[TwitterFriend] :: Nil
+
   private var users = Map[BigInt,TOUser]()
 
   private def withUser(m: Map[BigInt, TOUser], u: TOUser) =

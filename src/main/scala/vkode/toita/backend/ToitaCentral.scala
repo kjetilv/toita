@@ -4,20 +4,22 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import Actor._
 import scala.collection.mutable.Map
-import vkode.toita.comet.{PeopleComet, UserStream, DiagnosticsComet}
+import vkode.toita.comet.{UserStreamComet, PeopleComet, DiagnosticsComet}
 
 class ToitaCentral extends Actor with Options {
 
+  type EventTypes = List[Class[_ <: TwitterEvent]]
+
   override def receive = {
-    case CometUp(actor: UserStream) =>
-      setup(actor)
-    case CometDown(actor: UserStream) =>
+    case CometUp(actor: UserStreamComet, eventTypes) =>
+      setup(actor, eventTypes)
+    case CometDown(actor: UserStreamComet) =>
       dismantle(statusTrackers, actor.session)
-    case CometUp(actor: PeopleComet) =>
+    case CometUp(actor: PeopleComet, eventTypes) =>
       setup(actor)
     case CometDown(actor: PeopleComet) =>
       dismantle(peopleTrackers, actor.session)
-    case CometUp(diagnostics: DiagnosticsComet) =>
+    case CometUp(diagnostics: DiagnosticsComet, eventTypes) =>
       diagnosticians = diagnosticians :+ diagnostics
     case CometDown(diagnostics: DiagnosticsComet) =>
       diagnosticians = diagnosticians filterNot (_ == diagnostics)
@@ -30,21 +32,22 @@ class ToitaCentral extends Actor with Options {
 
   var diagnosticians = List[DiagnosticsComet]()
 
-  val statusTrackers = Map[UserSession,ActorRef]()
+  val trackers = Map[UserSession,ActorRef]()
 
-  val followerTrackers = Map[UserSession,ActorRef]()
+  val statusTrackers = Map[UserSession,ActorRef]()
 
   val peopleTrackers = Map[UserSession,ActorRef]()
 
-  private def setup (userStream: UserStream) = statusTracker(userStream) ! Tracker.Add(userStream)
-
-  private def statusTracker(userStream: UserStream) =
-    statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
+  private def setup (userStream: UserStreamComet, eventTypes: EventTypes) =
+    statusTracker(userStream) ! Tracker.Add(userStream)
 
   private def setup (people: PeopleComet) = peopleTracker(people) ! Tracker.Add(people)
 
+  private def statusTracker(userStream: UserStreamComet) =
+    statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
+
   private def peopleTracker(people: PeopleComet) =
-    followerTrackers getOrElseUpdate (people.session, newPeopleTracker(getEmitter(people)))
+    peopleTrackers getOrElseUpdate (people.session, newPeopleTracker(getEmitter(people)))
 
   private def getEmitter(sessionUser: ToitaSessionUser) = StreamEmitter(sessionUser.session)
 

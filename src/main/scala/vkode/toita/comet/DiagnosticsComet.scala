@@ -21,7 +21,7 @@ object DiagnosticsComet {
   case object LookupEnded extends Timed
 }
 
-class DiagnosticsComet extends CometActor with ToitaRegister {
+class DiagnosticsComet extends ToitaCSSComet {
 
   val streamCount = new AtomicInteger
 
@@ -31,9 +31,9 @@ class DiagnosticsComet extends CometActor with ToitaRegister {
 
   def lookups = <span>{ lookupCount.get }</span>
 
-  def render = bind("dia",
-                    "streams" -> streams,
-                    "lookups" -> lookups)
+  protected def getNodeSeq =
+    ("#streams" #> streams &
+    "#lookups" #> lookups) (defaultXml)
 
   def set(where: String, seq: => NodeSeq) {
     partialUpdate(SetHtml(where, seq))
