@@ -4,7 +4,7 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import Actor._
 import scala.collection.mutable.Map
-import vkode.toita.comet.{PeopleComet, UserStream, FollowedComet, DiagnosticsComet}
+import vkode.toita.comet.{PeopleComet, UserStream, DiagnosticsComet}
 
 class ToitaCentral extends Actor with Options {
 
@@ -13,10 +13,6 @@ class ToitaCentral extends Actor with Options {
       setup(actor)
     case CometDown(actor: UserStream) =>
       dismantle(statusTrackers, actor.session)
-    case CometUp(actor: FollowedComet) =>
-      setup(actor)
-    case CometDown(actor: FollowedComet) =>
-      dismantle(followerTrackers, actor.session)
     case CometUp(actor: PeopleComet) =>
       setup(actor)
     case CometDown(actor: PeopleComet) =>
@@ -44,11 +40,6 @@ class ToitaCentral extends Actor with Options {
 
   private def statusTracker(userStream: UserStream) =
     statusTrackers getOrElseUpdate (userStream.session, newStatusTracker(getEmitter(userStream)))
-
-  private def setup (followees: FollowedComet) = followerTracker(followees) ! Tracker.Add(followees)
-
-  private def followerTracker(followees: FollowedComet) =
-    followerTrackers getOrElseUpdate (followees.session, newPeopleTracker(getEmitter(followees)))
 
   private def setup (people: PeopleComet) = peopleTracker(people) ! Tracker.Add(people)
 

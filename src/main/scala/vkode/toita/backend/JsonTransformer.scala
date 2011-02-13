@@ -51,18 +51,19 @@ object JsonTransformer extends Logging {
       case x => Nil
     }) filter (_ isDefined) map (_ get)
 
+  private val nn = UserData(0, "unknown", "N/A", Some("N/A"))
+
+  private val nnDeco = UserDeco(None, false, None, Some("333333"), Some("3333FF"))
+
   private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
     json.extractOpt[TOStatus] map (status => {
-      val userOption = (json \ "user").extractOpt[TOUser]
-      val user = (json \ "user").extractOpt[TOUserDecoration] match {
-        case None => userOption
-        case deco => userOption map (_ copy (decoration = deco))
-      }
+      val dec = (json \ "user").extractOpt[UserDeco] getOrElse nnDeco
+      val data = (json \ "user").extractOpt[UserData] getOrElse nn
+      val user = TOUser(data, dec)
       val meta = json.extract[TOMeta]
       val retweeted = json \ "retweeted_status" match {
-        case JNull => None
-        case JNothing => None
-        case json => parseStatus(json)
+        case json: JValue => parseStatus(json)
+        case _ => None
       }
       val hashtags = entities[TOHashtag]("hashtags", json)
       val mentions = entities[TOMention]("user_mentions", json)
@@ -70,22 +71,19 @@ object JsonTransformer extends Logging {
       val reply = json.extractOpt[TOReply]
       val toEntities = TOEntities(hashtags, mentions, urls)
 
-      TwitterStatusUpdate(status, meta, user, retweeted, toEntities, reply, false, json)
+      TwitterStatusUpdate(status,
+                          meta,
+                          user,
+                          retweeted,
+                          toEntities,
+                          reply, false, json)
     })
   }
 
   private lazy val transformers: Map[String, JValue => Option[TwitterEvent]] =
     Map("text" -> (json => parseStatus(json)),
-        "delete" -> (json => {
-          (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, json))
-        }),
-        "friends" -> (json => {
-          json.extractOpt[TOFriends] map (TwitterFriends (_, json))
-        }),
-        "screen_name" -> (json => {
-          json.extractOpt[TOUser] map (TwitterFriend(_, json))
-        }),
-        "event" -> (json => {
-          json.extractOpt[TOFollowEvent] map (TwitterFollower(_, json))
-        }))
+        "delete" -> (json => (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, json))),
+        "friends" -> (json => json.extractOpt[TOFriends] map (TwitterFriends (_, json))),
+        "screen_name" -> (json => json.extractOpt[TOUser] map (TwitterFriend(_, json))),
+        "event" -> (json => json.extractOpt[TOFollowEvent] map (TwitterFollower(_, json))))
 }

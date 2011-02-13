@@ -24,7 +24,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
             with TwitterService {
 
   def user = events(twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
-    case (tweet: TwitterStatusUpdate) :: _ => tweet.user
+    case (tweet: TwitterStatusUpdate) :: _ => Some(tweet.user)
     case _ => None
   }
 
@@ -102,8 +102,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_]*)
       case None => Nil
     }
 
-  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
-    tsu.user map (user => List(TwitterFriend(user, json))) getOrElse Nil
+  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] = List(TwitterFriend(tsu.user, json))
 
   private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
     tsu.retweeted map (tsu => user(tsu, json)) getOrElse Nil

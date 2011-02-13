@@ -41,7 +41,7 @@ trait Indexed {
 
   def sameAs (idx: Indexed) = a == idx.a && b == idx.b
 
-  def before(indexed: Indexed) = a < indexed.b
+  def before(indexed: Indexed) = a < indexed.a
 }
 
 case class TOHashtag(indices: List[Int],
@@ -63,17 +63,24 @@ case class TOReply(in_reply_to_status_id: BigInt,
                    in_reply_to_user_id: BigInt,
                    in_reply_to_screen_name: String)
 
-case class TOUser(id: BigInt,
-                  screen_name: String,
-                  name: String,
-                  description: Option[String],
-                  profile_image_url: String,
-                  decoration: Option[TOUserDecoration])
+case class TOUser(data: UserData, deco: UserDeco)
 
-case class TOUserDecoration(profile_use_background_image: Boolean,
-                            profile_background_image_url: Option[String],
-                            profile_text_color: Option[String],
-                            profile_link_color: Option[String])
+case class UserData(id: BigInt, screen_name: String, name: String, description: Option[String])
+
+case class UserDeco(profile_image_url: Option[String],
+                    profile_use_background_image: Boolean,
+                    profile_background_image_url: Option[String],
+                    profile_text_color: Option[String],
+                    profile_link_color: Option[String]) {
+
+  def textColor = profile_text_color getOrElse "333333"
+
+  def textStyle = "color:#" + textColor
+
+  def linkColor = profile_link_color getOrElse "3333DD"
+
+  def linkStyle = "color:#" + linkColor
+}
 
 case class TOFollowEvent(target: TOUser,
                          source: TOUser,

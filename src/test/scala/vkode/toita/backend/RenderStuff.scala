@@ -3,10 +3,16 @@ package vkode.toita.backend
 import java.util.Date
 import org.junit.{Assert, Test}
 import net.liftweb.json.JsonAST.JNothing
+import xml.NodeSeq
 
 class RenderStuff {
 
-  private def render (tsu: TwitterStatusUpdate) = Rendrer render (StreamItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]()))
+  private val deco =
+    UserDeco(None, false, None, Some("333333"), Some("3333FF"))
+
+  private def render (tsu: TwitterStatusUpdate) =
+    Rendrer renderStatusStream (List(StreamItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]())),
+          <span/>)
 
   @Test def renderMentionHashes {
     val text = "hey @zip #zot foobar #zip fussball"
@@ -21,12 +27,11 @@ class RenderStuff {
                                                 false,
                                                 new Date(),
                                                 ""),
-                                         Some(TOUser(100,
-                                                     "me",
-                                                     "Me",
-                                                     Some("'scription"),
-                                                     "http://www.vg.no",
-                                                     None)),
+                                         TOUser(UserData(100,
+                                                         "me",
+                                                         "Me",
+                                                         Some("'scription")),
+                                                deco),
                                          None,
                                          TOEntities(List(TOHashtag(List(hIdx1, hIdx1 + 4), "#zot"),
                                                          TOHashtag(List(hIdx2, hIdx2 + 4), "#zip")),
@@ -47,12 +52,11 @@ class RenderStuff {
                                                 false,
                                                 new Date,
                                                 ""),
-                                         Some(TOUser(100,
-                                                     "me",
-                                                     "Me",
-                                                     None,
-                                                     "http://www.vg.no",
-                                                     None)),
+                                         TOUser(UserData(100,
+                                                         "me",
+                                                         "Me",
+                                                         None),
+                                                deco),
                                          None,
                                          TOEntities(Nil,
                                                     Nil,
@@ -71,12 +75,11 @@ class RenderStuff {
                                                 false,
                                                 new Date,
                                                 ""),
-                                         Some(TOUser(100,
-                                                     "me",
-                                                     "Me",
-                                                     None,
-                                                     "http://www.vg.no",
-                                                     None)),
+                                         TOUser(UserData(100,
+                                                         "me",
+                                                         "Me",
+                                                         None),
+                                                deco),
                                          None,
                                          TOEntities(Nil,
                                                     Nil,
@@ -97,12 +100,11 @@ class RenderStuff {
                                                 false,
                                                 new Date,
                                                 ""),
-                                         Some(TOUser(49590734,
-                                                     "Madsws",
-                                                     "Mads Wam Schneider",
-                                                     None,
-                                                     "http://a2.twimg.com/profile_images/1097295142/Madsws_normal.jpeg",
-                                                     None)),
+                                         TOUser(UserData(49590734,
+                                                         "Madsws",
+                                                         "Mads Wam Schneider",
+                                                         None),
+                                                deco copy (profile_image_url = Some("http://a2.twimg.com/profile_images/1097295142/Madsws_normal.jpeg"))),
                                          None,
                                          TOEntities(List(),
                                                     List(TOMention(9550672,
@@ -129,12 +131,11 @@ class RenderStuff {
                                                 false,
                                                 new Date,
                                                 ""),
-                                         Some(TOUser(14417779,
-                                                     "sigvei",
-                                                     "Sigve Indregard",
-                                                     None,
-                                                     "http://a3.twimg.com/profile_images/1128768899/41411_861520108_1603_n_normal.jpg",
-                                                     None)),
+                                         TOUser(UserData(14417779,
+                                                         "sigvei",
+                                                         "Sigve Indregard",
+                                                         None),
+                                                deco copy (profile_image_url = Some("http://a3.twimg.com/profile_images/1128768899/41411_861520108_1603_n_normal.jpg"))),
                                          None,
                                          TOEntities(List(),
                                                     List(),
@@ -156,12 +157,11 @@ class RenderStuff {
                                                 false,
                                                 new Date,
                                                 ""),
-                                         Some(TOUser(100,
-                                                     "me",
-                                                     "Me",
-                                                     None,
-                                                     "http://www.vg.no",
-                                                     None)),
+                                         TOUser(UserData(100,
+                                                         "me",
+                                                         "Me",
+                                                         None),
+                                                deco copy (profile_image_url = Some("http://www.vg.no"))),
                                          None,
                                          TOEntities(Nil,
                                                     List(TOMention(10, "zip", "Zip", List(atIdx + 1, atIdx + 4))),
@@ -173,37 +173,38 @@ class RenderStuff {
   }
 
   @Test def renderSjetilv {
-    val tsu = render(TwitterStatusUpdate(TOStatus(BigInt("16453482592600065", 10),
-                                                  "@hogrim par for the course"),
-                                         TOMeta(false,
-                                                None,
-                                                false,
-                                                """<a href="http://www.echofon.com/" rel="nofollow">Echofon</a>""",
-                                                false,
-                                                new Date,
-                                                ""),
-                                         Some(TOUser(55487753,
-                                                     "sjetilv",
-                                                     "Sjetil Wahlstavehd",
-                                                     None,
-                                                     """http://a3.twimg.com/profile_images/610112767/Screen_shot_2009-10-29_at_15.25.06_normal.png""",
-                                                     None)),
-                                         None,
-                                         TOEntities(List(),
-                                                    List(),
-                                                    List()),
-                                         Some(TOReply(BigInt("16450228211154944", 10),
-                                                      BigInt("14276602", 10),
-                                                      "hogrim")),
-                                         false,
-                                         JNothing))
+    val tsu =
+      render(TwitterStatusUpdate
+                 (TOStatus(BigInt("16453482592600065", 10),
+                           "@hogrim par for the course"),
+                  TOMeta(false,
+                         None,
+                         false,
+                         """<a href="http://www.echofon.com/" rel="nofollow">Echofon</a>""",
+                         false,
+                         new Date,
+                         ""),
+                  TOUser(UserData(55487753,
+                                  "sjetilv",
+                                  "Sjetil Wahlstavehd",
+                                  None),
+                         deco copy (profile_image_url = Some("""http://a3.twimg.com/profile_images/610112767/Screen_shot_2009-10-29_at_15.25.06_normal.png"""))),
+                  None,
+                  TOEntities(List(),
+                             List(),
+                             List()),
+                  Some(TOReply(BigInt("16450228211154944", 10),
+                               BigInt("14276602", 10),
+                               "hogrim")),
+                  false,
+                  JNothing))
     println (tsu)
   }
 
   private def parseAndRender(json: String): Unit = {
     import ParseStuffData._
     val event = parse(json).get.asInstanceOf[TwitterStatusUpdate]
-    val nodes = Rendrer render StreamItem(event, 0, 0, 0, Set[String](), Set[String](), Set[String]())
+    val nodes = Rendrer renderStatusStream (List(StreamItem(event, 0, 0, 0, Set[String](), Set[String](), Set[String]())), <span/>)
     Assert.assertEquals("Bad render: " + nodes,
                         2, nodes.size)
   }

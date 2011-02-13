@@ -23,7 +23,7 @@ case class TwitterStatusDelete(status: TOStatusRef,
 
 case class TwitterStatusUpdate(status: TOStatus,
                                meta: TOMeta,
-                               user: Option[TOUser],
+                               user: TOUser,
                                retweeted: Option[TwitterStatusUpdate],
                                entities: TOEntities,
                                reply: Option[TOReply],
@@ -31,7 +31,7 @@ case class TwitterStatusUpdate(status: TOStatus,
                                override val json: JValue)
     extends TwitterEvent with Treeable {
 
-  def name = user map (_.screen_name) getOrElse "anonymous"
+  def name = user.data.screen_name
 
   def timestamp = meta.created_at.getTime
 
