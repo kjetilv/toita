@@ -4,7 +4,6 @@ import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import xml.{Elem, NodeSeq}
-import net.liftweb.util.CssBindFunc
 import net.liftweb.http._
 import net.liftweb.common._
 import net.liftweb.util._
@@ -32,14 +31,20 @@ object Rendrer {
                                 "#tweet-text" #> <span>No slogan</span> &
                                 "#tweet-retweeter" #> <span/>
 
-  private def transformFun(user: TOUser): CssBindFunc =
+  private def transformFun(user: TOUser): (NodeSeq => NodeSeq) =
     user match {
       case TOUser(UserData(id, screenName, name, desc), deco) =>
-        "#people-name" #> screenNameLink (name, screenName, deco) &
-        "#people-img" #> img(deco, name)
+        val replacer =
+          "#people-name" #> screenNameLink (name, screenName, deco) &
+          "#people-img" #> img(deco, name)
+        (xml: NodeSeq) =>
+          <div style={deco.tweetStyle}>
+            { replacer(xml) }
+            <br/>
+          </div>
     }
 
-  private def transformFun(item: StreamItem[TwitterStatusUpdate]): CssBindFunc = item match {
+  private def transformFun(item: StreamItem[TwitterStatusUpdate]): (NodeSeq => NodeSeq) = item match {
     case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) , _, _, _, _, _, _) =>
       renderTweet(retweet, Some(user))
     case StreamItem(tweet, _, _, _, _, _, _) =>
@@ -57,7 +62,7 @@ object Rendrer {
                                _,
                                _,
                                deleted,
-                               _) =>
+                               _) => val replacer =
         "#tweet-img" #> img(deco.profile_image_url,name) &
         "#tweet-name" #> screenNameLink (name, screenName, deco) &
         "#tweet-text" #> (NodeSeq fromSeq (Rendrer renderText twitterStatusUpdate)) &
@@ -65,6 +70,11 @@ object Rendrer {
           case Some(TOUser(UserData(_, screenName, name, _), deco)) => retweetedScreenNameLink(name, screenName, deco)
           case _ => <span/>
         })
+        (xml: NodeSeq) =>
+          <div style={deco.tweetStyle}>
+            { replacer(xml) }
+            <br/>
+          </div>
     }
 
   private def renderText(tsu: TwitterStatusUpdate): Elem =
@@ -170,7 +180,7 @@ object Rendrer {
   private def img(url: Option[String], alt: String): NodeSeq = img(url getOrElse "no image", alt)
 
   private def img(url: String, alt: String): NodeSeq =
-    <img src={ url } alt={ alt }/>
+      <img src={ url } alt={ alt }/>
 
   private def urlLink(url: String, deco: UserDeco): NodeSeq =
     <a style={ deco.linkStyle } href={ url }>{ url }</a>

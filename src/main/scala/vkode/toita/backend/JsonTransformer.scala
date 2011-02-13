@@ -53,7 +53,7 @@ object JsonTransformer extends Logging {
 
   private val nn = UserData(0, "unknown", "N/A", Some("N/A"))
 
-  private val nnDeco = UserDeco(None, false, None, Some("333333"), Some("3333FF"))
+  private val nnDeco = UserDeco(None, false, None, Some("1C351D"), Some("005500"), Some("A0C5C7"), Some("000000"))
 
   private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
     json.extractOpt[TOStatus] map (status => {

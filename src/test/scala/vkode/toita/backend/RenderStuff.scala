@@ -8,7 +8,7 @@ import xml.NodeSeq
 class RenderStuff {
 
   private val deco =
-    UserDeco(None, false, None, Some("333333"), Some("3333FF"))
+    UserDeco(None, false, None, Some("1C351D"), Some("005500"), Some("A0C5C7"), Some("000000"))
 
   private def render (tsu: TwitterStatusUpdate) =
     Rendrer renderStatusStream (List(StreamItem(tsu, 0, 0, 0, Set[String](), Set[String](), Set[String]())),
