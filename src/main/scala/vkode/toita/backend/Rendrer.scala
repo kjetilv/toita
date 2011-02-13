@@ -58,12 +58,11 @@ object Rendrer {
                                _,
                                deleted,
                                _) =>
-        "#tweet-img" #> <img src={ deco.profile_image_url getOrElse "" } alt={ name }/> &
+        "#tweet-img" #> img(deco.profile_image_url,name) &
         "#tweet-name" #> screenNameLink (name, screenName, deco) &
         "#tweet-text" #> (NodeSeq fromSeq (Rendrer renderText twitterStatusUpdate)) &
         "#tweet-retweeter" #> (retweeter match {
-          case Some(TOUser(UserData(_, screenName, name, _), deco)) =>
-            <span style={ deco.textStyle }>Retweeted by { screenNameLink(name, screenName, deco) }</span>
+          case Some(TOUser(UserData(_, screenName, name, _), deco)) => retweetedScreenNameLink(name, screenName, deco)
           case _ => <span/>
         })
     }
@@ -75,8 +74,7 @@ object Rendrer {
           nodes(user, status, reply, hashtags, mentions, urls) :+ deleteFlag(deleted)
         case _ => <span/>
       }
-      }
-    </span>
+      } </span>
 
   private case class Insert(a: Int, b: Int, node: NodeSeq) {
 
@@ -176,6 +174,9 @@ object Rendrer {
 
   private def urlLink(url: String, deco: UserDeco): NodeSeq =
     <a style={ deco.linkStyle } href={ url }>{ url }</a>
+
+  private def retweetedScreenNameLink(name: String, screenName: String, deco: UserDeco): NodeSeq =
+    <span style={ deco.textStyle }>Retweeted by { screenNameLink(name, screenName, deco) }</span>
 
   private def screenNameLink(name: String, screenName: String, deco: UserDeco): NodeSeq =
     <a style={ deco.linkStyle } name={ name } href={ "http://twitter.com/" + screenName }>@{ screenName }</a>

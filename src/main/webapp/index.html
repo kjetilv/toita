@@ -9,29 +9,24 @@
 
     .user { float:right; width:100% }
 
-    .tweets    { float:right; width:100% }
-    .tweetarea { width:100% }
+    .tweetarea { float:right; width:100% }
     .peoplearea { width:100% }
     .profileimg { float:left; width:20% }
     .profilename { float:left; width:80%; height:20%; text-align:left }
-    .statustext { float:left; width:80%; height:80%; text-align:right }
+    .statustext { float:right; width:80%; height:80%; text-align:right }
     .retweeter{ float:left; width:80%; height:80%; text-align:right }
   </style>
 
-  <div class="people">
-    <lift:with-param name="people">
-      <div id="people-area" class="lift:comet?type=PeopleComet;name=PeopleComet peoplearea">
-        <!--<div class="user">-->
-        <div class="profilename">
-          <span id="people-name"/>
-        </div>
-        <div class="profileimg">
-          <span id="people-img" width="24" height="24"/>
-        </div>
-        <!--</div>-->
+  <lift:with-param name="people">
+    <div id="people-area" class="lift:comet?type=PeopleComet;name=PeopleComet peoplearea">
+      <div class="profilename">
+        <span id="people-name"/>
       </div>
-    </lift:with-param>
-  </div>
+      <div class="profileimg">
+        <span id="people-img" width="24" height="24"/>
+      </div>
+    </div>
+  </lift:with-param>
 
   <!--<div class="diagnostics">-->
   <!--<lift:with-param name="diagnostics">-->
@@ -45,9 +40,8 @@
   <!--</div>-->
 
   <lift:with-param name="content">
-    <div class="tweets">
-      <div id="tweet-area" class="lift:comet?type=UserStreamComet;name=UserStream tweetarea">
-        <!--<tweet-area count="10">-->
+    <div id="tweet-area" class="lift:comet?type=UserStreamComet;name=UserStream">
+      <div class="tweetarea">
         <div class="profileimg">
           <span id="tweet-img" width="32" height="32"/>
         </div>
@@ -60,8 +54,16 @@
         <div class="retweeter">
           <span id="tweet-retweeter"/>
         </div>
-        <!--</tweet-area>-->
       </div>
+    </div>
+  </lift:with-param>
+
+  <lift:with-param name="diagnostics">
+    <div id="diagnostics-area" class="lift:comet?type=DiagnosticsComet;name=Diagnostics">
+      <ul>
+        <li><dt>Streams:</dt><dd><span id="streams"/></dd></li>
+        <li><dt>Lookups:</dt><dd><span id="lookups"/></dd></li>
+      </ul>
     </div>
   </lift:with-param>
 </div>

@@ -31,27 +31,25 @@ class DiagnosticsComet extends ToitaCSSComet with ToitaRegister {
 
   def lookups = <span>{ lookupCount.get }</span>
 
-  protected def getNodeSeq =
-    ("#streams" #> streams &
-    "#lookups" #> lookups) (defaultXml)
+  protected def getNodeSeq = ("#streams" #> streams & "#lookups" #> lookups) (defaultXml)
 
-  def set(where: String, seq: => NodeSeq) {
-    partialUpdate(SetHtml(where, seq))
-    reRender(true)
+  def update() {
+    partialUpdate(SetHtml("diagnostics-area", getNodeSeq))
+    reRender(false)
   }
 
   override def lowPriority = {
     case DiagnosticsComet.StreamUp =>
       streamCount.incrementAndGet
-      set("streams", streams)
+      update
     case DiagnosticsComet.StreamDown =>
       streamCount.decrementAndGet
-      set("streams", streams)
+      update
     case DiagnosticsComet.LookupStarted =>
       lookupCount.incrementAndGet
-      set("lookup", lookups)
+      update
     case DiagnosticsComet.LookupEnded =>
       lookupCount.decrementAndGet
-      set("lookup", lookups)
+      update
   }
 }

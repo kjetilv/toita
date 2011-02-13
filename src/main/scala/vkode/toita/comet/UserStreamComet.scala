@@ -20,8 +20,6 @@ class UserStreamComet extends ToitaCSSComet with ToitaRegister with ToitaTrackab
 
   override def tracker(twitterService: TwitterAsynchService) = Some(Actor actorOf (new StatusTracker(twitterService)))
 
-  protected val area = "tweetarea"
-
   private def tweetCount = 10
 
   protected var stream: Option[TStream[TwitterStatusUpdate]] = None
@@ -34,7 +32,7 @@ class UserStreamComet extends ToitaCSSComet with ToitaRegister with ToitaTrackab
   override def lowPriority: PartialFunction[Any, Unit] = {
     case update: TStream[TwitterStatusUpdate] =>
       stream = Option(update)
-      partialUpdate(SetHtml(area, getNodeSeq))
+      partialUpdate(SetHtml("tweet-area", getNodeSeq))
       reRender(false)
   }
 
