@@ -3,7 +3,6 @@ package vkode.toita.backend
 import org.scribe.builder.ServiceBuilder
 import org.scribe.builder.api.TwitterApi
 import org.apache.http.client.methods.HttpGet
-import org.scribe.model.{OAuthConstants, Verb, OAuthRequest, Token}
 import org.scribe.extractors.HeaderExtractorImpl
 import org.apache.http.message.BasicHeader
 import scala.collection.JavaConversions._
@@ -12,6 +11,7 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.HttpResponse
 import io.{Codec, Source}
 import scalaz.Options
+import org.scribe.model._
 
 object TwitterSession {
 
@@ -19,9 +19,22 @@ object TwitterSession {
 
   private val sec = System getProperty "secret"
 
-  private val service = new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec build
+  private val service = new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec callback "oob" build
 
-  private val requestToken = service.getRequestToken
+  private def requestToken = service.getRequestToken
+
+  case class Authentication(token: Token, url: String)
+
+  def authenticateData = {
+    val token = requestToken
+    val url = service getAuthorizationUrl token
+    Authentication(token, url)
+  }
+
+  def access(auth: Authentication, verifier: String) = {
+    val token = service.getAccessToken(requestToken, new Verifier(verifier))
+    UserSession(token.getToken, token.getSecret)
+  }
 
   private def newOauthRequest(url: String, userSession: UserSession): OAuthRequest = {
     val oauthRequest = new OAuthRequest(Verb.GET, url)

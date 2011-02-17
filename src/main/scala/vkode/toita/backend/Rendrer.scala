@@ -3,12 +3,12 @@ package vkode.toita.backend
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import xml.{Elem, NodeSeq}
 import net.liftweb.http._
 import net.liftweb.common._
 import net.liftweb.util._
 import Helpers._
 import SHtml._
+import xml.{Text, Elem, NodeSeq}
 
 object Rendrer {
 
@@ -45,15 +45,17 @@ object Rendrer {
     }
 
   private def transformFun(item: StreamItem[TwitterStatusUpdate]): (NodeSeq => NodeSeq) = item match {
-    case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) , _, _, _, _, _, _) =>
-      renderTweet(retweet, Some(user))
-    case StreamItem(tweet, _, _, _, _, _, _) =>
-      renderTweet(tweet, None)
+    case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) , indent, _, _, _, _, _) =>
+      renderTweet(retweet, indent, Some(user))
+    case StreamItem(tweet, indent, _, _, _, _, _) =>
+      renderTweet(tweet, indent, None)
     case x =>
       emptyUserRender
   }
 
-  private def renderTweet(twitterStatusUpdate: TwitterStatusUpdate, retweeter: Option[TOUser]) =
+  private def renderTweet(twitterStatusUpdate: TwitterStatusUpdate,
+                          indent: Int,
+                          retweeter: Option[TOUser]) =
     twitterStatusUpdate match {
       case TwitterStatusUpdate(TOStatus(sid, text),
                                meta,
@@ -72,6 +74,7 @@ object Rendrer {
         })
         (xml: NodeSeq) =>
           <div style={deco.tweetStyle}>
+            { if (indent > 1) NodeSeq fromSeq (0 to indent map (i => <span>&#8618;</span>)) else <span/> }
             { replacer(xml) }
             <br/>
           </div>

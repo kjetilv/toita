@@ -7,7 +7,7 @@ case class TwitterStream(private val stream: Iterator[String],
                          private val source: InputStream)
     extends Logging with Iterator[String] {
 
-  def next() = stream.next
+  def next = stream.next
 
   def hasNext = stream.hasNext
 

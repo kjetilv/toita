@@ -25,7 +25,8 @@ class Boot {
     /*
      * Build SiteMap
      */
-    setSiteMapFunc(() => SiteMap(Menu("Home") / "index",
+    setSiteMapFunc(() => SiteMap(Menu("Login") / "login",
+                                 Menu("Home") / "index",
                                  Menu("User") / "user"))
 
     /*

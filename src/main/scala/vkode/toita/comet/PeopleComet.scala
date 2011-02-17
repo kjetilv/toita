@@ -23,9 +23,6 @@ class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 
   private var users = Map[BigInt,TOUser]()
 
-  private def withUser(m: Map[BigInt, TOUser], u: TOUser) =
-    if (m contains u.data.id) m else m + (u.data.id -> u)
-
   override def lowPriority = {
     case newUsers: List[TOUser] =>
       users = (users /: newUsers) (withUser(_, _))
@@ -36,6 +33,9 @@ class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
       partialUpdate(SetHtml("people-area", getNodeSeq))
       reRender(false)
   }
+
+  private def withUser(m: Map[BigInt, TOUser], u: TOUser) =
+    if (m contains u.data.id) m else m + (u.data.id -> u)
 
   protected override def getNodeSeq: NodeSeq =
     if (users.isEmpty) <span>No friends!</span> else (Rendrer renderUsers (users.values.toList, defaultXml))

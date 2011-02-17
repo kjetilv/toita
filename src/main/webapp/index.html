@@ -11,13 +11,14 @@
 
     .tweetarea { float:right; width:100% }
     .peoplearea { width:100% }
+    .replyindent { }
     .profileimg { float:left; width:20% }
     .profilename { float:left; width:80%; height:20%; text-align:left }
     .statustext { float:right; width:80%; height:80%; text-align:right }
     .retweeter{ float:left; width:80%; height:80%; text-align:right }
   </style>
 
-  <lift:with-param name="people">
+  <lift:with-param name="sidebar1">
     <div id="people-area" class="lift:comet?type=PeopleComet;name=PeopleComet peoplearea">
       <div class="profilename">
         <span id="people-name"/>
@@ -31,6 +32,9 @@
   <lift:with-param name="content">
     <div id="tweet-area" class="lift:comet?type=UserStreamComet;name=UserStream">
       <div class="tweetarea">
+        <div class="replyindent">
+          <span id="tweet-indent"/>
+        </div>
         <div class="profileimg">
           <span id="tweet-img" width="32" height="32"/>
         </div>
@@ -47,7 +51,7 @@
     </div>
   </lift:with-param>
 
-  <lift:with-param name="diagnostics">
+  <lift:with-param name="sidebar2">
     <div id="diagnostics-area" class="lift:comet?type=DiagnosticsComet;name=Diagnostics">
       <ul>
         <li><dt>Streams:</dt><dd><span id="streams"/></dd></li>
