@@ -31,7 +31,9 @@ class DiagnosticsComet extends ToitaCSSComet with ToitaRegister {
 
   def lookups = <span>{ lookupCount.get }</span>
 
-  protected def getNodeSeq = ("#streams" #> streams & "#lookups" #> lookups) (defaultXml)
+  val transformer = "#streams" #> streams & "#lookups" #> lookups
+
+  protected def getNodeSeq = transformer(defaultXml)
 
   def update() {
     partialUpdate(SetHtml("diagnostics-area", getNodeSeq))

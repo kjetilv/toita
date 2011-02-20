@@ -79,8 +79,8 @@ case class UserDeco(profile_image_url: Option[String],
                    " border-width:1;" +
                    " border-color:#" + profile_sidebar_border_color.get + ";" +
                    " border-style:solid;" +
-                   " color:#" + profile_text_color.get + ";" +
-                   " background-color:#" + profile_sidebar_fill_color.get
+                   " color:#" + profile_text_color.get //+ ";" +
+                   //" background-color:#" + profile_sidebar_fill_color.get
 
   def textColor = profile_text_color getOrElse "333333"
 

@@ -2,8 +2,7 @@ package vkode.toita.backend
 
 trait ToitaSessionUser {
 
-  val session = UserSession (System getProperty "token",
-                             System getProperty "apiSecret")
+  val session = UserSession (System getProperty "token", System getProperty "apiSecret")
 
   lazy val twitterAsynch = TwitterAsynchService (session)
 

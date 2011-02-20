@@ -21,18 +21,18 @@ object TwitterSession {
 
   private val service = new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec callback "oob" build
 
-  private def requestToken = service.getRequestToken
+  private def requestNewToken = service.getRequestToken
 
-  case class Authentication(token: Token, url: String)
+  case class Authentication(requestToken: Token, url: String)
 
   def authenticateData = {
-    val token = requestToken
+    val token = requestNewToken
     val url = service getAuthorizationUrl token
     Authentication(token, url)
   }
 
   def access(auth: Authentication, verifier: String) = {
-    val token = service.getAccessToken(requestToken, new Verifier(verifier))
+    val token = service.getAccessToken(auth.requestToken, new Verifier(verifier))
     UserSession(token.getToken, token.getSecret)
   }
 
@@ -46,7 +46,7 @@ object TwitterSession {
     val httpRequest = new HttpGet(url)
     httpRequest setHeader new BasicHeader(OAuthConstants.HEADER, new HeaderExtractorImpl extract oauthRequest)
     val params = httpRequest.getParams
-    params.setParameter(OAuthConstants.TOKEN, requestToken.getToken)
+    params.setParameter(OAuthConstants.TOKEN, requestNewToken.getToken)
     oauthRequest.getOauthParameters foreach (_ match {
       case (key, value) => {
         params.setParameter(key, value)

@@ -6,13 +6,15 @@
 
   <lift:with-param name="content">
     <div class="lift:Login?form=post">
-     <p>
-       <span id="authlink"/>
-     </p>
-     <p>
-       PIN: <label><input id="pin" name="pin"/></label>
-       <input id="go" type="submit" value="Go"/>
-     </p>
+      <p>
+        <span id="authlink"/>
+      </p>
+      <p>
+        PIN: <label id="pinlabel"> <input type="text" id="pin"/></label>
+        <span id="pinstatus">Unknown</span>
+        <input type="submit" id="go"/>
+        <span id="connected">Not connected</span>
+      </p>
     </div>
   </lift:with-param>
 

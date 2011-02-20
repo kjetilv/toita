@@ -18,31 +18,72 @@ import S._
 
 class Login extends StatefulSnippet {
 
-  var auth: Option[TwitterSession.Authentication] = None
-
-  var pin = "PIN"
-
-  var userSession: Option[UserSession] = None
-
-  def enterPin: Elem = {
-    text(pin, pin = _)
-  }
-
   def dispatch = {
     case "render" =>
-      "#authlink" #> linkOutToTheWorld &
-      "#pin" #> enterPin &
-      "#go" #> andWeReOff
+      "#authlink" #> authlink &
+      "#pin" #> getpin &
+      "#pinstatus" #> pinstatus &
+      "#go" #> andWeReOff &
+      "#connected" #> connected
   }
 
-  def andWeReOff: NodeSeq = {
-    userSession = Option(TwitterSession.access(auth.get, pin))
-    println(userSession)
-    if (userSession.isDefined) Text("OK!") else Text("Damn")
-  }
+  private var auth: Option[TwitterSession.Authentication] = None
 
-  def linkOutToTheWorld: NodeSeq = {
+  private var pin: Option[String] = None
+
+  private var goodPin = false
+
+  private val PIN_LENGTH = 7
+
+  private var userSession: Option[UserSession] = None
+
+  private def newAuthData = {
     auth = Option(TwitterSession.authenticateData)
-    auth map (a => link(a.url, () => {}, Text("Login"), "target" -> "_blank")) getOrElse Text("Could not initiate authentication")
+    println("AuthData: " + auth)
+    auth
   }
+
+  private val loginLinkFunction =
+    (a: TwitterSession.Authentication) => link(a.url, () => {}, Text("Login"), "target" -> "_blank")
+
+  private def authlink: NodeSeq =
+    newAuthData map (loginLinkFunction) getOrElse Text("Could not initiate authentication")
+
+  private def getpin = ajaxText(pin getOrElse "PIN", newPin => {
+    println("Pin received: '" + newPin + "'")
+    pin = Option(if (newPin == null) null else newPin.trim)
+    SetHtml("pinstatus", pinstatus)
+  })
+
+  private def pinstatus = pin map (pin => {
+    val len = pin.length
+    if (len < PIN_LENGTH) {
+      goodPin = false
+      Text("Short pin, missing " + (PIN_LENGTH - len))
+    } else if (len > PIN_LENGTH) {
+      goodPin = false
+      Text("Long pin, " + (len - PIN_LENGTH) + " too many")
+    } else if (pin forall (Character isDigit _)) {
+      goodPin = true
+      Text("Good pin")
+    } else {
+      goodPin = false
+      Text("Bad pin")
+    }
+  }) getOrElse Text("No pin")
+
+  private def andWeReOff: NodeSeq = ajaxButton("Connect", () => {
+    auth map (auth => {
+      userSession = pin map (pin => {
+        Option(TwitterSession.access(auth, pin))
+      }) getOrElse None
+      userSession map (session => {
+        println("User Session: " + session)
+      })
+    })
+    SetHtml("connected", connected)
+  })
+
+  private def connected =
+      if (userSession.isDefined) Text("Connected: " + userSession.get) else Text("Not connected")
 }
