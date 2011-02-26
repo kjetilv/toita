@@ -2,7 +2,7 @@ package vkode.toita.backend
 
 object TwitterAsynchService {
 
-  def apply(userSession: UserSession): TwitterAsynchService = StreamEmitter(userSession)
+  def apply(userSession: UserSession): TwitterAsynchService = StreamEmitter (userSession)
 }
 
 trait TwitterAsynchService {

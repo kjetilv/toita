@@ -33,7 +33,7 @@ object TwitterSession {
 
   def access(auth: Authentication, verifier: String) = {
     val token = service.getAccessToken(auth.requestToken, new Verifier(verifier))
-    UserSession(token.getToken, token.getSecret)
+    UserSession (null, token.getToken, token.getSecret)
   }
 
   private def newOauthRequest(url: String, userSession: UserSession): OAuthRequest = {

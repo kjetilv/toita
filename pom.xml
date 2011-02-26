@@ -192,6 +192,19 @@
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
+                <groupId>org.zeroturnaround</groupId>
+                <artifactId>jrebel-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-rebel-xml</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <version>${scala.plugin.version}</version>
