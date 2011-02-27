@@ -19,7 +19,7 @@ class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 
   override val eventTypes = classOf[TwitterFriends] :: classOf[TwitterFriend] :: Nil
 
-  override def tracker(twitterService: TwitterAsynchService) = Some(Actor.actorOf(new PeopleTracker(twitterService)))
+  override def tracker(twitterService: TwitterService) = Some(Actor.actorOf(new PeopleTracker(twitterService)))
 
   private var users = Map[BigInt,TOUser]()
 

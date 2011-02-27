@@ -17,7 +17,7 @@ trait Tracker extends Logging with Actor {
 
   import Tracker._
 
-  val twitterService: TwitterAsynchService
+  val twitterService: TwitterService
 
   private var cometActors: List[CometActor] = Nil
 

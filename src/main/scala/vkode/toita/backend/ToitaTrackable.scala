@@ -7,11 +7,9 @@ trait ToitaTrackable {
 
   val cometActor: CometActor
 
-  val session: UserSession = UserDB("sjetilv", "kjetilv").head 
-//  getOrElse (throw new IllegalStateException("No user")) 
-//    UserSession (System getProperty "token", System getProperty "apiSecret")
+  val sessions: List[UserSession] = UserDB("sjetilv", "kjetilv") 
 
   val eventTypes: List[Class[_ <: TwitterEvent]]
 
-  def tracker (twitterService: TwitterAsynchService): Option[ActorRef]
+  def tracker (twitterService: TwitterService): Option[ActorRef]
 }

@@ -19,7 +19,9 @@ object StreamEmitter {
 }
 
 class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]*)
-    extends Logging with TwitterAsynchService with TwitterService {
+    extends Logging with TwitterService {
+
+  def userName = userSession.name getOrElse ""
 
   def user = events(twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
     case (tweet: TwitterStatusUpdate) :: _ => Some(tweet.user)

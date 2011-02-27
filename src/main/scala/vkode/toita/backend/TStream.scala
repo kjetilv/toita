@@ -2,16 +2,33 @@ package vkode.toita.backend
 
 object TStream {
 
-  def apply[T <: Treeable](roots: List[BigInt],
-                           tMap: Map[BigInt, T],
+  def apply[T <: Treeable](user: String,
+                           rootIds: List[BigInt],
+                           idMap: Map[BigInt, T],
+                           children: (BigInt, List[BigInt])*): TStream[T] = {
+    apply(user, rootIds, idMap, Map(children: _*))
+  }
+
+  def apply[T <: Treeable](user: String,
+                           rootIds: List[BigInt],
+                           idMap: Map[BigInt, T],
                            children: Map[BigInt, List[BigInt]]): TStream[T] = {
-    val tree = TreeBuilder(roots, tMap, children).build
-    TStream(tree, tree.items)
+    def nodes (ids: List[BigInt]) = ids map (idMap(_)) map (StreamNode(_))
+
+    def addSubs(node: StreamNode[T]): StreamNode[T] =
+      if (children contains node.t.id) node copy (subnodes = nodes (children (node.t.id)) map (addSubs (_)))
+      else node
+    
+    val tree = Tree(nodes(rootIds) map (addSubs (_)))
+    
+    TStream(user, tree, tree.items)
   }
 }
 
-case class TStream[T <: Treeable](tree: Tree[T], items: List[StreamItem[T]]) {
-
+case class TStream[T <: Treeable](user: String, tree: Tree[T], items: List[StreamItem[T]]) {
+  
+  def takeItems(n: Int) = items take n
+  
   def total = (0 /: items) (_ + _.nodeCount)
 }
 
@@ -90,15 +107,3 @@ case class Tree[T <: Treeable](nodes: List[StreamNode[T]]) extends TreeStat[T] {
   lazy val items = nodes flatten (_.items)
 }
 
-case class TreeBuilder[T <: Treeable](roots: List[BigInt],
-                                      tMap: Map[BigInt, T],
-                                      children: Map[BigInt, List[BigInt]]) {
-
-  private def nodes (ids: List[BigInt]) = ids map (tMap(_)) map (StreamNode(_))
-
-  private def addSubs(node: StreamNode[T]): StreamNode[T] =
-    if (children contains node.t.id) node copy (subnodes = nodes (children (node.t.id)) map (addSubs (_)))
-    else node
-
-  def build: Tree[T] = Tree(nodes(roots) map (addSubs (_)))
-}

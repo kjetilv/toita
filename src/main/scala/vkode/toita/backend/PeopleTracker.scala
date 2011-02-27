@@ -2,7 +2,7 @@ package vkode.toita.backend
 
 import vkode.toita.backend.Tracker.TrackerControl
 
-class PeopleTracker (val twitterService: TwitterAsynchService) extends Tracker {
+class PeopleTracker (val twitterService: TwitterService) extends Tracker {
 
   protected def receive = {
     case msg: TrackerControl => control(msg)

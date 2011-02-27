@@ -1,11 +1,14 @@
 package vkode.toita.backend
 
-object TwitterService {
-
-  def apply(userSession: UserSession): TwitterService = StreamEmitter (userSession)
-}
-
 trait TwitterService {
 
+  def homeTimeline: Unit
+
+  def users (ids: List[BigInt]): Unit
+
+  def status (id: BigInt): Unit
+
   def user: Option[TOUser]
+  
+  def userName: String
 }

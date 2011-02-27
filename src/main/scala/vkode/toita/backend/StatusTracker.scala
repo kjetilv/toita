@@ -2,7 +2,7 @@ package vkode.toita.backend
 
 import vkode.toita.backend.Tracker.TrackerControl
 
-class StatusTracker (val twitterService: TwitterAsynchService) extends Tracker {
+class StatusTracker (val twitterService: TwitterService) extends Tracker {
 
   override def preStart = log.info(this + " starts")
 
@@ -31,7 +31,7 @@ class StatusTracker (val twitterService: TwitterAsynchService) extends Tracker {
       }
   }
 
-  private def updateConversation = send(TStream(roots, statusMap, repliesTo))
+  private def updateConversation = send(TStream(twitterService.userName, roots, statusMap, repliesTo))
 
   private var statusMap = Map[BigInt, TwitterStatusUpdate]()
 

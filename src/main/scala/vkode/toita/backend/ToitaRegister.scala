@@ -15,7 +15,7 @@ trait ToitaRegister {
 
   val cometActor: CometActor = this
 
-  def tracker (twitterService: TwitterAsynchService): Option[ActorRef] = None
+  def tracker (twitterService: TwitterService): Option[ActorRef] = None
 
   override protected def localSetup() = broadcast (CometUp(this))
 
