@@ -8,7 +8,7 @@ class StatusTracker (val twitterService: TwitterService) extends Tracker {
 
   protected def receive = {
     case msg: TrackerControl => control(msg)
-    case TwitterStatusDelete(TOStatusRef(id, _), _) =>
+    case TwitterStatusDelete(TOStatusRef(id, _), _, _) =>
       statusMap = statusMap get id match {
         case None => statusMap
         case Some(tsu) => statusMap + (id -> tsu.copy(deleted = true))

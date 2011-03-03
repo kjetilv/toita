@@ -387,13 +387,13 @@ object ParseStuffData {
   def parse(json: Option[JValue]): Option[TwitterEvent] = json match {
     case Some(json: JValue) =>
       println("Recv: " + json)
-      val list = JsonTransformer getEvent json
+      val list = JsonTransformer getEvent ("name", json)
       if (list.isEmpty) {
         println ("No hits: " + list)
         None
       } else
         list map (_ match {
-          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json) =>
+          case TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, authUser, json) =>
             println("OK: " + status)
             println("  : " + meta)
             println("  : " + user)
@@ -401,11 +401,12 @@ object ParseStuffData {
             println("  : " + urls)
             println("  : " + mentions)
             println("  : " + hashtags)
+            println("  : " + authUser)
             println("  : " + reply)
-            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, json))
-          case TwitterStatusDelete (statusRef, json) =>
+            Some (TwitterStatusUpdate (status, meta, user, retweet, TOEntities (hashtags, mentions, urls), reply, del, "sjetilv", json))
+          case TwitterStatusDelete (statusRef, _, json) =>
             println("Deleted: " + statusRef)
-            Some (TwitterStatusDelete (statusRef, json))
+            Some (TwitterStatusDelete (statusRef, "sjetilv", json))
           case event: TwitterEvent =>
             println("Unhandled: " + event)
             None
@@ -444,7 +445,7 @@ class ParseStuff {
 
   @Test def parseRTAndTag {
     parse (rt_tag) map (_ match {
-      case TwitterStatusUpdate(status, _, _, _, _, _, _, _) =>
+      case TwitterStatusUpdate(status, _, _, _, _, _, _, _, _) =>
         Assert.assertEquals(BigInt(1538354965381120L), status.id)
       case x => Assert.fail("Not parsed: " + x)
     })
@@ -468,6 +469,7 @@ class ParseStuff {
                      _,
                      _,
                      _,
+                     _,
                      _)) => println(decoration)
       case x => Assert fail ("Not parsed: " + x)
     }
@@ -477,7 +479,7 @@ class ParseStuff {
     parse(new_rt_tag) match {
       case None => Assert fail "Not parsed"
       case Some(update) => update match {
-        case TwitterStatusUpdate(_, _, _, Some(retweet), _, _, _, _) =>
+        case TwitterStatusUpdate(_, _, _, Some(retweet), _, _, _, _, _) =>
         case x => Assert fail "Not parsed retweet: " +x
       }
     }

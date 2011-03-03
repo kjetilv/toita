@@ -38,6 +38,7 @@ class RenderStuff {
                                                     Nil),
                                          None,
                                          false,
+                                         "sjetilv",
                                          JNothing))
     println(tsu)
   }
@@ -62,6 +63,7 @@ class RenderStuff {
                                                     Nil),
                                          None,
                                          false,
+                                         "sjetilv",
                                          JNothing))
   }
 
@@ -85,6 +87,7 @@ class RenderStuff {
                                                     Nil),
                                          None,
                                          false,
+                                         "sjetilv",
                                          JNothing))
     println(tsu)
   }
@@ -116,6 +119,7 @@ class RenderStuff {
                                                     List()),
                                          Some(TOReply(BigInt("16479574028197888", 10),9550672, "CiViX")),
                                          false,
+                                         "sjetilv",
                                          JNothing))
     println(tsu)
   }
@@ -141,6 +145,7 @@ class RenderStuff {
                                                     List(TOURL(List(23, 43),"http://bit.ly/giVQdm"))),
                                          Some(TOReply(null,null,null)),
                                          false,
+                                         "sjetilv",
                                          JNothing))
     println (tsu)
   }
@@ -167,6 +172,7 @@ class RenderStuff {
                                                     Nil),
                                          None,
                                          false,
+                                         "sjetilv",
                                          JNothing))
     println(tsu)
   }
@@ -196,6 +202,7 @@ class RenderStuff {
                                BigInt("14276602", 10),
                                "hogrim")),
                   false,
+                  "sjetilv",
                   JNothing))
     println (tsu)
   }

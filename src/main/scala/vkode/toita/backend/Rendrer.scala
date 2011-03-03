@@ -45,7 +45,7 @@ object Rendrer {
     }
 
   private def transformFun(item: StreamItem[TwitterStatusUpdate]): (NodeSeq => NodeSeq) = item match {
-    case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _) , indent, _, _, _, _, _) =>
+    case StreamItem(TwitterStatusUpdate(_, _, user, Some(retweet), _, _, _, _, _) , indent, _, _, _, _, _) =>
       renderTweet(retweet, indent, Some(user))
     case StreamItem(tweet, indent, _, _, _, _, _) =>
       renderTweet(tweet, indent, None)
@@ -64,6 +64,7 @@ object Rendrer {
                                _,
                                _,
                                deleted,
+                               _,
                                _) => val replacer =
         "#tweet-img" #> img(deco.profile_image_url,name) &
         "#tweet-name" #> screenNameLink (name, screenName, deco) &
@@ -83,7 +84,7 @@ object Rendrer {
   private def renderText(tsu: TwitterStatusUpdate): Elem =
     <span> {
       tsu match {
-        case TwitterStatusUpdate(status, meta, user, _, TOEntities(hashtags, mentions, urls), reply, deleted, _) =>
+        case TwitterStatusUpdate(status, meta, user, _, TOEntities(hashtags, mentions, urls), reply, deleted, _, _) =>
           nodes(user, status, reply, hashtags, mentions, urls) :+ deleteFlag(deleted)
         case _ => <span/>
       }

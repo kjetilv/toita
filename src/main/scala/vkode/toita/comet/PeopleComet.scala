@@ -30,7 +30,7 @@ class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
       reRender(false)
     case user: TOUser =>
       users = withUser(users, user)
-      partialUpdate(SetHtml("people-area", getNodeSeq))
+       partialUpdate(SetHtml("people-area", getNodeSeq))
       reRender(false)
   }
 

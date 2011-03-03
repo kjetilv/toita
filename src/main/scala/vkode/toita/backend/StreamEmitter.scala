@@ -21,16 +21,18 @@ object StreamEmitter {
 class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]*)
     extends Logging with TwitterService {
 
-  def userName = userSession.name getOrElse ""
+  def userName = userSession.user getOrElse ""
 
-  def user = events(twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
+  def user = events (twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
     case (tweet: TwitterStatusUpdate) :: _ => Some(tweet.user)
     case _ => None
   }
 
   def homeTimeline = message(twitterSession.homeTimeline)
 
-  def users(ids: List[BigInt]) = ids.sliding(25, 25) foreach (window => { message(twitterSession getFriends window) })
+  def users(ids: List[BigInt]) = ids.sliding(25, 25) foreach (window => { 
+    message(twitterSession getFriends window) 
+  })
 
   def status(id: BigInt) = message(twitterSession lookup id)
 
@@ -102,7 +104,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
       case None => Nil
     }
 
-  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] = List(TwitterFriend(tsu.user, json))
+  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] = List(TwitterFriend(tsu.user, userSession.user.get, json))
 
   private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
     tsu.retweeted map (tsu => user(tsu, json)) getOrElse Nil
@@ -111,7 +113,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
     case JNull => Nil
     case JNothing => Nil
     case json => {
-      JsonTransformer getEvent json match {
+      JsonTransformer getEvent (userSession.user.get, json) match {
         case None =>
           Nil
         case Some(event) =>

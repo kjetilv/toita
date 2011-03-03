@@ -36,12 +36,12 @@ object JsonTransformer extends Logging {
     override protected def dateFormatter = new java.text.SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy")
   }
 
-  def getEvent(json: JValue): Option[TwitterEvent] = {
+  def getEvent(au: String, json: JValue): Option[TwitterEvent] = {
     write(json)
     transformers.iterator find (_ match {
       case (tag, _) => json \ tag != JNothing
     }) map (_ match {
-      case (_, fun) => fun (json)
+      case (_, fun) => fun (au, json)
     }) getOrElse None
   }
 
@@ -55,14 +55,14 @@ object JsonTransformer extends Logging {
 
   private val nnDeco = UserDeco(None, false, None, Some("1C351D"), Some("005500"), Some("A0C5C7"), Some("000000"))
 
-  private def parseStatus(json: JValue): Option[TwitterStatusUpdate] = {
+  private def parseStatus(au: String, json: JValue): Option[TwitterStatusUpdate] = {
     json.extractOpt[TOStatus] map (status => {
       val dec = (json \ "user").extractOpt[UserDeco] getOrElse nnDeco
       val data = (json \ "user").extractOpt[UserData] getOrElse nn
       val user = TOUser(data, dec)
       val meta = json.extract[TOMeta]
       val retweeted = json \ "retweeted_status" match {
-        case json: JValue => parseStatus(json)
+        case json: JValue => parseStatus(au, json)
         case _ => None
       }
       val hashtags = entities[TOHashtag]("hashtags", json)
@@ -76,14 +76,14 @@ object JsonTransformer extends Logging {
                           user,
                           retweeted,
                           toEntities,
-                          reply, false, json)
+                          reply, false, au, json)
     })
   }
 
-  private lazy val transformers: Map[String, JValue => Option[TwitterEvent]] =
-    Map("text" -> (json => parseStatus(json)),
-        "delete" -> (json => (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, json))),
-        "friends" -> (json => json.extractOpt[TOFriends] map (TwitterFriends (_, json))),
-        "screen_name" -> (json => json.extractOpt[TOUser] map (TwitterFriend(_, json))),
-        "event" -> (json => json.extractOpt[TOFollowEvent] map (TwitterFollower(_, json))))
+  private lazy val transformers: Map[String, (String, JValue) => Option[TwitterEvent]] =
+    Map("text" → ((au: String, json: JValue) => { parseStatus(au, json) }),
+        "delete" -> ((au: String, json: JValue) => (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, au, json))),
+        "friends" -> ((au: String, json: JValue) => json.extractOpt[TOFriends] map (TwitterFriends (_, au, json))),
+        "screen_name" -> ((au: String, json: JValue) => json.extractOpt[TOUser] map (TwitterFriend (_, au, json))),
+        "event" -> ((au: String, json: JValue) => json.extractOpt[TOFollowEvent] map (TwitterFollower (_, au, json))))
 }

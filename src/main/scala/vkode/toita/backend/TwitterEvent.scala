@@ -5,20 +5,27 @@ import net.liftweb.json.JsonAST.JValue
 
 abstract sealed class TwitterEvent {
 
+  val authenticatedUser: String
+  
   val time: DateTime = new DateTime
 
   val json: JValue
 }
 
 case class TwitterFriends(friends: TOFriends,
+                          override val authenticatedUser: String,
                           override val json: JValue) extends TwitterEvent
 
 case class TwitterFriend(friend: TOUser,
+                         override val authenticatedUser: String,
                          override val json: JValue) extends TwitterEvent
 
-case class TwitterFollower(event: TOFollowEvent, override val json: JValue) extends TwitterEvent
+case class TwitterFollower(event: TOFollowEvent, 
+                           override val authenticatedUser: String,
+                           override val json: JValue) extends TwitterEvent
 
 case class TwitterStatusDelete(status: TOStatusRef,
+                               override val authenticatedUser: String,
                                override val json: JValue) extends TwitterEvent
 
 case class TwitterStatusUpdate(status: TOStatus,
@@ -28,6 +35,7 @@ case class TwitterStatusUpdate(status: TOStatus,
                                entities: TOEntities,
                                reply: Option[TOReply],
                                deleted: Boolean,
+                               override val authenticatedUser: String,
                                override val json: JValue)
     extends TwitterEvent with Treeable {
 
