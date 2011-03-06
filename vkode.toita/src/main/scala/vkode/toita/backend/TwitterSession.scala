@@ -19,7 +19,12 @@ object TwitterSession {
 
   private val sec = System getProperty "secret"
 
-  private val service = new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec callback "oob" build
+  private val service = Api.key match {
+    case (key, sec) => 
+      new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec callback "oob" build
+    case x => 
+      error("Unexpected API data:" + x)
+  }
 
   private def requestNewToken = service.getRequestToken
 
