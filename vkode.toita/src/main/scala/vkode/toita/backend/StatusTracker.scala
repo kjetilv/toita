@@ -1,6 +1,7 @@
 package vkode.toita.backend
 
 import vkode.toita.backend.Tracker.TrackerControl
+import vkode.toita.events.{TStream, TOStatusRef, TwitterStatusDelete, TwitterStatusUpdate}
 
 class StatusTracker (val twitterService: TwitterService) extends Tracker {
 

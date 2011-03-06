@@ -1,4 +1,4 @@
-package vkode.toita.backend
+package vkode.toita.waka
 
 import io.Source
 
@@ -23,16 +23,5 @@ object DB {
   }
 }
 
-object Api {
-  
-  val key = DB.apiKey
-}
 
-object UserDB {
-  
-  def apply (users: String*) = DB.users filter (trpl => {
-    users contains trpl._1
-  }) map (trpl => {
-    UserSession (Option(trpl._1), trpl._2, trpl._3)
-  })
-}
+

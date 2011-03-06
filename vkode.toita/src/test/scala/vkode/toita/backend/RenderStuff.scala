@@ -3,7 +3,7 @@ package vkode.toita.backend
 import java.util.Date
 import org.junit.{Assert, Test}
 import net.liftweb.json.JsonAST.JNothing
-import xml.NodeSeq
+import vkode.toita.events._
 
 class RenderStuff {
 

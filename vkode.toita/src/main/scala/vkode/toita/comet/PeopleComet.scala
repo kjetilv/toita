@@ -1,6 +1,5 @@
 package vkode.toita.comet
 
-import vkode.toita.backend.TOUser
 import scala.xml._
 import net.liftweb.common._
 import vkode.toita.backend._
@@ -14,6 +13,7 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 import akka.actor.Actor
+import vkode.toita.events.{TOUser, TwitterFriend, TwitterFriends}
 
 class PeopleComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 

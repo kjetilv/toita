@@ -3,12 +3,10 @@ package vkode.toita.backend
 import java.util.Date
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import net.liftweb.http._
-import net.liftweb.common._
 import net.liftweb.util._
 import Helpers._
-import SHtml._
-import xml.{Text, Elem, NodeSeq}
+import xml.{Elem, NodeSeq}
+import vkode.toita.events._
 
 object Rendrer {
 

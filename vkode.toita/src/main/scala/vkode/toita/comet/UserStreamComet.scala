@@ -14,6 +14,7 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 import akka.actor.Actor
+import vkode.toita.events.{TwitterStatusUpdate, TwitterStatusDelete, TStream, StreamItem}
 
 class UserStreamComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 

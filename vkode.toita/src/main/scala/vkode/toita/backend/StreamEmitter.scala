@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import net.liftweb.json.JsonParser
 import net.liftweb.json.JsonAST.{JNothing, JNull, JArray, JValue}
 import reflect.{ClassManifest, Manifest}
+import vkode.toita.events.{TwitterEvent, TwitterFriend, TwitterStatusUpdate}
+import vkode.toita.waka.UserSession
 
 object StreamEmitter {
 

@@ -3,6 +3,7 @@ package vkode.toita.backend
 import net.liftweb.json.JsonParser
 import org.junit.{Assert, Test}
 import net.liftweb.json.JsonAST.JValue
+import vkode.toita.events._
 
 object ParseStuffData {
 

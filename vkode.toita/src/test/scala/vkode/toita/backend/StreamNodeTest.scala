@@ -2,6 +2,7 @@ package vkode.toita.backend
 
 import org.junit.{Assert, Test}
 import Assert._
+import vkode.toita.events.{TStream, Treeable}
 
 class StreamNodeTest {
 

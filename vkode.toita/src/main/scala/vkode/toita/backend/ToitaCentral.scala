@@ -4,6 +4,8 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.comet.DiagnosticsComet
 import collection.mutable.{Map => MutMap}
+import vkode.toita.events.TwitterEvent
+import vkode.toita.waka.UserSession
 
 class ToitaCentral extends Actor with Options {
 

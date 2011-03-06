@@ -1,4 +1,4 @@
-package vkode.toita.backend
+package vkode.toita.waka
 
 case class UserSession(user: Option[String], token: String, secret: String) {
 

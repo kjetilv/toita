@@ -6,6 +6,7 @@ import java.util.Date
 import net.liftweb.json._
 import java.io.{File, PrintWriter, FileWriter}
 import akka.util.Logging
+import vkode.toita.events._
 
 object JsonTransformer extends Logging {
 

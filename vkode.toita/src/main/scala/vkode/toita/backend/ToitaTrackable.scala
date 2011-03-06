@@ -2,6 +2,8 @@ package vkode.toita.backend
 
 import net.liftweb.http.CometActor
 import akka.actor.ActorRef
+import vkode.toita.events.TwitterEvent
+import vkode.toita.waka.{UserDB, UserSession}
 
 trait ToitaTrackable {
 

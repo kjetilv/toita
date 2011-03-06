@@ -15,6 +15,7 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 import S._
+import vkode.toita.waka.UserSession
 
 class Login extends StatefulSnippet {
 

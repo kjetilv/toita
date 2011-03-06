@@ -8,7 +8,7 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     
-    <name>${artifactId}</name>
+    <name>${project.artifactId}</name>
     
     <developers>
         <developer>
@@ -218,10 +218,22 @@
             <groupId>com.googlecode.scalaz</groupId>
             <artifactId>scalaz-http_${scalaz.scala.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-tools.testing</groupId>
+            <artifactId>specs_${scala.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <modules>
         <module>vkode.toita</module>
+        <module>vkode.toita.waka</module>
+        <module>vkode.toita.events</module>
     </modules>
     
     <build>
@@ -263,7 +275,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>${artifactId}.*</Export-Package>
+                        <Export-Package>${project.artifactId}.*</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

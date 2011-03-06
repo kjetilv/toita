@@ -1,5 +1,7 @@
 package vkode.toita.backend
 
+import vkode.toita.events.TOUser
+
 trait TwitterService {
 
   def homeTimeline: Unit
