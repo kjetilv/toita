@@ -1,7 +1,5 @@
 package vkode.toita.events
 
-import vkode.toita.events.{StreamItem, Treeable}
-
 trait TreeStat[T <: Treeable] {
   def nodeCount: Int
   def latest: Long

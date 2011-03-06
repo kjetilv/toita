@@ -231,7 +231,7 @@
     </dependencies>
     
     <modules>
-        <module>vkode.toita</module>
+        <module>vkode.toita.gui</module>
         <module>vkode.toita.waka</module>
         <module>vkode.toita.events</module>
     </modules>

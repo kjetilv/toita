@@ -1,7 +1,5 @@
 package vkode.toita.events
 
-import vkode.toita.events.{StreamNode, TreeStat, StreamItem, Treeable}
-
 case class Tree[T <: Treeable](nodes: List[StreamNode[T]]) extends TreeStat[T] {
 
   lazy val nodeCount = nodes match {
