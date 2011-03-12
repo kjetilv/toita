@@ -17,8 +17,10 @@
             <roles>
                 <role>Founder</role>
                 <role>Developer</role>
-                <role>Code Nazi</role>
-                <role>VP of the Sheep dip</role>
+                <role>Architect</role>
+                <role>Product owner</role>
+                <role>Auto Code Nazi</role>
+                <role>VP of the sheep dip</role>
             </roles>
         </developer>
     </developers>
@@ -36,7 +38,7 @@
         <scalaz.scala.version>2.8.0</scalaz.scala.version>
         <lift.scala.version>2.8.1</lift.scala.version>
         <lift.version>2.2</lift.version>
-        <bundle.plugin.version>2.2.0</bundle.plugin.version>
+        <bundle.plugin.version>2.3.4</bundle.plugin.version>
 
         <!-- Common plugin settings -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -141,6 +143,11 @@
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
+                <groupId>se.scalablesolutions.akka</groupId>
+                <artifactId>akka-remote</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.googlecode.scalaz</groupId>
                 <artifactId>scalaz-core_${scalaz.scala.version}</artifactId>
                 <version>${scalaz.version}</version>
@@ -211,12 +218,8 @@
             <artifactId>akka-actor</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.scalaz</groupId>
-            <artifactId>scalaz-core_${scalaz.scala.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.scalaz</groupId>
-            <artifactId>scalaz-http_${scalaz.scala.version}</artifactId>
+            <groupId>se.scalablesolutions.akka</groupId>
+            <artifactId>akka-remote</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
