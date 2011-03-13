@@ -222,6 +222,11 @@
             <artifactId>akka-remote</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.googlecode.scalaz</groupId>
+            <artifactId>scalaz-core_${scalaz.scala.version}</artifactId>
+            <version>5.0</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
