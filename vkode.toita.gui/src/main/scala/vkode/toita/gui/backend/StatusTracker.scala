@@ -1,7 +1,7 @@
 package vkode.toita.gui.backend
 
 import vkode.toita.gui.backend.Tracker.TrackerControl
-import vkode.toita.events.{TStream, TOStatusRef, TwitterStatusDelete, TwitterStatusUpdate}
+import vkode.toita.events._
 
 class StatusTracker (val twitterService: TwitterService) extends Tracker {
 
@@ -9,12 +9,14 @@ class StatusTracker (val twitterService: TwitterService) extends Tracker {
 
   protected def receive = {
     case msg: TrackerControl => control(msg)
+    
     case TwitterStatusDelete(TOStatusRef(id, _), _, _) =>
       statusMap = statusMap get id match {
         case None => statusMap
         case Some(tsu) => statusMap + (id -> tsu.copy(deleted = true))
       }
       updateConversation
+    
     case statusUpdate: TwitterStatusUpdate =>
       val id = statusUpdate.id
       if (statusMap contains id) {
@@ -37,8 +39,6 @@ class StatusTracker (val twitterService: TwitterService) extends Tracker {
   private var statusMap = Map[BigInt, TwitterStatusUpdate]()
 
   private var replies = Set[BigInt]()
-
-  private var totalRepliesCount = Map[BigInt, Int]()
 
   private var repliesTo = Map[BigInt, List[BigInt]]()
 

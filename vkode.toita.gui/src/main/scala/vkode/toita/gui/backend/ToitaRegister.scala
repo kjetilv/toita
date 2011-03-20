@@ -4,7 +4,7 @@ import akka.actor.Actors._
 import vkode.toita.gui.comet.ToitaComet
 import net.liftweb.http.CometActor
 import akka.actor.ActorRef
-import vkode.toita.events.TwitterEvent
+import vkode.toita.events._
 
 trait ToitaRegister {
 

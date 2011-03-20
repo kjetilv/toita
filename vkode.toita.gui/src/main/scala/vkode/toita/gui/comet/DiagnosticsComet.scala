@@ -1,11 +1,8 @@
 package vkode.toita.gui.comet
 
-import net.liftweb.http.CometActor
 import actors.threadpool.AtomicInteger
 import net.liftweb.http.js.JsCmds.SetHtml
 import vkode.toita.gui.backend.ToitaRegister
-import xml.NodeSeq
-
 object DiagnosticsComet {
 
   sealed trait DiagnosticsEvent {

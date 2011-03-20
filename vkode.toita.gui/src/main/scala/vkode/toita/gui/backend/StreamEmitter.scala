@@ -1,14 +1,12 @@
 package vkode.toita.gui.backend
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.ActorRef
 import java.io.IOException
 import akka.util.Logging
 import java.util.concurrent.atomic.AtomicBoolean
 import net.liftweb.json.JsonParser
 import net.liftweb.json.JsonAST.{JNothing, JNull, JArray, JValue}
-import reflect.{ClassManifest, Manifest}
-import vkode.toita.events.{TwitterEvent, TwitterFriend, TwitterStatusUpdate}
-import vkode.toita.waka.UserSession
+import vkode.toita.events._
 
 object StreamEmitter {
 

@@ -1,14 +1,21 @@
 package vkode.toita.waka.main
 
 import akka.actor.Actors._
+import akka.util.Logging
 
-object Waka {
+import vkode.toita.waka.Casting
 
-  val module = remote.start
+object Waka extends Logging {
+
+  val module = remote.start("localhost", 4020)
+
+  module.register("casting", actorOf(classOf[Casting]))
   
+  Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+    def run = remote.shutdown
+  }))
+
   def main(args: Array[String]) {
-    Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
-      def run = remote.shutdown
-    }))
+    log.info("Started: " + module);
   }
 }  

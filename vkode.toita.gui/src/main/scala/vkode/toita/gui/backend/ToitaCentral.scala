@@ -4,8 +4,7 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.gui.comet.DiagnosticsComet
 import collection.mutable.{Map => MutMap}
-import vkode.toita.events.TwitterEvent
-import vkode.toita.waka.UserSession
+import vkode.toita.events.{UserSession, TwitterEvent}
 
 class ToitaCentral extends Actor with Options {
 
@@ -41,9 +40,10 @@ class ToitaCentral extends Actor with Options {
         case None =>
           newTrackerRef(trackable, StreamEmitter(session)) match {
             case None =>
-              log.warn("No tracker could be constructed for " + trackable)
+              log.warn("No tracker could be gleaned from trackable " + trackable)
               None
             case newTrackerRef =>
+              log.info("Wiring up new tracker " + newTrackerRef.get + " for " + trackable)
               trackerRefs (key) = newTrackerRef.get
               newTrackerRef
           }
@@ -51,19 +51,19 @@ class ToitaCentral extends Actor with Options {
       }
     }) filter (_ isDefined) map (_ get)
 
-  private def newTrackerRef(trackable: ToitaTrackable, emitter: StreamEmitter): Option[ActorRef] = {
+  private def newTrackerRef(trackable: ToitaTrackable, emitter: StreamEmitter): Option[ActorRef] =
     trackable tracker emitter match {
       case Some(trackerRef) =>
         trackerRef.start
         emitter addReceiver(trackerRef, trackable.eventTypes)
         log.info("Tracker for " + trackable + " started: " + trackerRef +
                  ", events of " + trackable.eventTypes.mkString(","))
+//        RemoteTrackers("")
         Some(trackerRef)
       case None =>
         log.warn("No tracker for " + trackable);
         None
     }
-  }
 
   private def dismantle (trackable: ToitaTrackable) =
     trackable.sessions map (session => {

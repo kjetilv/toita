@@ -12,7 +12,8 @@ import org.apache.http.HttpResponse
 import io.{Codec, Source}
 import scalaz.Options
 import org.scribe.model._
-import vkode.toita.waka.{UserSession, Api}
+import vkode.toita.events.UserSession
+import vkode.toita.waka.Api
 
 object TwitterSession {
 

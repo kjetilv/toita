@@ -3,6 +3,7 @@ package vkode.toita.gui.backend
 import net.liftweb.http.CometActor
 import akka.util.Logging
 import akka.actor.Actor
+import vkode.toita.events._
 
 object Tracker {
 

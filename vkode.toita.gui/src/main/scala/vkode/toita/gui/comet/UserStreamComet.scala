@@ -2,19 +2,10 @@ package vkode.toita.gui.comet
 
 import scala.xml._
 import scala.collection.mutable.{Map => MutMap}
-import net.liftweb.common._
 import vkode.toita.gui.backend._
 import net.liftweb.http.js.JsCmds._
-import java.util.Date
-import scalaz.Options
-import org.joda.time.DateTime
-import net.liftweb.http._
-import net.liftweb.common._
-import net.liftweb.util._
-import Helpers._
-import SHtml._
 import akka.actor.Actor
-import vkode.toita.events.{TwitterStatusUpdate, TwitterStatusDelete, TStream, StreamItem}
+import vkode.toita.events._
 
 class UserStreamComet extends ToitaCSSComet with ToitaRegister with ToitaTrackable {
 

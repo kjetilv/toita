@@ -1,7 +1,7 @@
 package vkode.toita.gui.backend
 
 import vkode.toita.gui.backend.Tracker.TrackerControl
-import vkode.toita.events.{TOFriends, TwitterFriend, TwitterFriends}
+import vkode.toita.events._
 
 class PeopleTracker (val twitterService: TwitterService) extends Tracker {
 

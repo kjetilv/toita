@@ -2,14 +2,14 @@ package vkode.toita.gui.backend
 
 import net.liftweb.http.CometActor
 import akka.actor.ActorRef
-import vkode.toita.events.TwitterEvent
-import vkode.toita.waka.{UserDB, UserSession}
+import vkode.toita.waka.DB
+import vkode.toita.events._
 
 trait ToitaTrackable {
 
   val cometActor: CometActor
 
-  val sessions: List[UserSession] = UserDB("sjetilv", "kjetilv") 
+  val sessions: List[UserSession] = DB("sjetilv", "kjetilv") 
 
   val eventTypes: List[Class[_ <: TwitterEvent]]
 

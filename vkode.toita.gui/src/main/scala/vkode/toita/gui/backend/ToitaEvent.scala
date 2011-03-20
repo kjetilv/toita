@@ -1,6 +1,5 @@
 package vkode.toita.gui.backend
 
-import net.liftweb.http.CometActor
 import vkode.toita.gui.comet.ToitaComet
 
 sealed trait ToitaEvent

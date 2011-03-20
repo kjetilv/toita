@@ -1,21 +1,13 @@
 package vkode.toita.gui.snippet
 
-import vkode.toita.gui.backend.TwitterSession
-import net.liftweb.http.js.JsCmds.SetHtml
 import scala.xml._
-import net.liftweb.common._
 import vkode.toita.gui.backend._
 import net.liftweb.http.js.JsCmds._
-import java.util.Date
-import scalaz.Options
-import org.joda.time.DateTime
 import net.liftweb.http._
-import net.liftweb.common._
 import net.liftweb.util._
 import Helpers._
 import SHtml._
-import S._
-import vkode.toita.waka.UserSession
+import vkode.toita.events.UserSession
 
 class Login extends StatefulSnippet {
 

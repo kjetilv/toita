@@ -1,6 +1,6 @@
 package vkode.toita.gui.backend
 
-import net.liftweb.json.JsonAST.{JValue, JField, JArray, JNothing, JNull}
+import net.liftweb.json.JsonAST.{JValue, JField, JArray, JNothing}
 import reflect.Manifest
 import java.util.Date
 import net.liftweb.json._

@@ -1,6 +1,4 @@
-package vkode.toita.gui.backend
-
-import vkode.toita.events.TOUser
+package vkode.toita.events
 
 trait TwitterService {
 

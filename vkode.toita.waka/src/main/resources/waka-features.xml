@@ -1,0 +1,7 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+    <feature name="toita-waka">
+        <bundle>mvn:vkode.toita/vkode.toita.events</bundle>
+        <bundle>mvn:vkode.toita/vkode.toita.waka</bundle>
+        <bundle>mvn:</bundle>
+    </feature>
+</features>

@@ -241,6 +241,7 @@
     <modules>
         <module>vkode.toita.gui</module>
         <module>vkode.toita.waka</module>
+        <!--<module>vkode.toita.toita</module>-->
         <module>vkode.toita.events</module>
     </modules>
     
@@ -269,14 +270,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-idea-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <downloadSources>true</downloadSources>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>${bundle.plugin.version}</version>
@@ -293,7 +286,7 @@
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
+                    <artifactId>maven-scala-plugin</artifactId>
                 <version>${scala.plugin.version}</version>
                 <configuration>
                     <charset>${project.build.sourceEncoding}</charset>
