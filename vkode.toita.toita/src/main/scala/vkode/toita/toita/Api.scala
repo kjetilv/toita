@@ -1,4 +1,4 @@
-package vkode.toita.waka
+package vkode.toita.toita
 
 import io.Source
 

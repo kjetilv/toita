@@ -8,6 +8,7 @@ import net.liftweb.util._
 import Helpers._
 import SHtml._
 import vkode.toita.events.UserSession
+import vkode.toita.toita.TwitterSession
 
 class Login extends StatefulSnippet {
 

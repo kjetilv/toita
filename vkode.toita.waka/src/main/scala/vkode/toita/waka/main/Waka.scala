@@ -12,7 +12,9 @@ object Waka extends Logging {
   module.register("casting", actorOf(classOf[Casting]))
   
   Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
-    def run = remote.shutdown
+    def run() {
+      remote.shutdown
+    }
   }))
 
   def main(args: Array[String]) {

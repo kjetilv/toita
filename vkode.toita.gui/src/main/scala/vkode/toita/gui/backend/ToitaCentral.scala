@@ -4,7 +4,8 @@ import scalaz.Options
 import akka.actor.{ActorRef, Actor}
 import vkode.toita.gui.comet.DiagnosticsComet
 import collection.mutable.{Map => MutMap}
-import vkode.toita.events.{UserSession, TwitterEvent}
+import vkode.toita.events.{UserRef, UserSession, TwitterEvent}
+import vkode.toita.toita.{DB, StreamEmitter}
 
 class ToitaCentral extends Actor with Options {
 
@@ -24,21 +25,25 @@ class ToitaCentral extends Actor with Options {
       log.warn("Unhandled: " + x)
   }
 
-  def diagnostic(msg: Any) = diagnosticians foreach (_ ! msg)
+  def diagnostic(msg: Any) {
+    diagnosticians foreach (_ ! msg)
+  }
 
   var diagnosticians = List[DiagnosticsComet]()
 
-  val trackerRefs = MutMap[(UserSession, List[Class[_ <: TwitterEvent]]),ActorRef]()
+  val trackerRefs = MutMap[(UserRef, List[Class[_ <: TwitterEvent]]),ActorRef]()
 
-  private def setup (trackable: ToitaTrackable) =
+  private def setup (trackable: ToitaTrackable) {
     trackerRefFor(trackable) foreach (_ ! Tracker.Add(trackable.cometActor))
+  }
 
   private def trackerRefFor(trackable: ToitaTrackable): List[ActorRef] =
     trackable.sessions map (session => {
       val key = session → trackable.eventTypes
       trackerRefs get key match {
         case None =>
-          newTrackerRef(trackable, StreamEmitter(session)) match {
+          val userSession = DB(session).get
+          newTrackerRef(trackable, StreamEmitter(userSession), session) match {
             case None =>
               log.warn("No tracker could be gleaned from trackable " + trackable)
               None
@@ -51,14 +56,14 @@ class ToitaCentral extends Actor with Options {
       }
     }) filter (_ isDefined) map (_ get)
 
-  private def newTrackerRef(trackable: ToitaTrackable, emitter: StreamEmitter): Option[ActorRef] =
+  private def newTrackerRef(trackable: ToitaTrackable, emitter: StreamEmitter, user: UserRef): Option[ActorRef] =
     trackable tracker emitter match {
       case Some(trackerRef) =>
-        trackerRef.start
-        emitter addReceiver(trackerRef, trackable.eventTypes)
-        log.info("Tracker for " + trackable + " started: " + trackerRef +
+        trackerRef.start()
+        emitter addReceiver (trackerRef, trackable.eventTypes)
+        log.info("Tracker for " + trackable + " started: " + trackerRef + 
                  ", events of " + trackable.eventTypes.mkString(","))
-//        RemoteTrackers("")
+//        RemoteTrackers(user, trackable.eventTypes) = trackerRef 
         Some(trackerRef)
       case None =>
         log.warn("No tracker for " + trackable);
@@ -73,7 +78,7 @@ class ToitaCentral extends Actor with Options {
           log.info("Dismantling tracker for " + trackable + ": " + trackerRef)
           trackerRefs -= key
           trackerRef ! Tracker.Remove(trackable.cometActor)
-          trackerRef.stop
+          trackerRef.stop()
         case None =>
           log.warn("No tracker for " + trackable + " was registered");
       }

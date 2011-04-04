@@ -2,6 +2,7 @@ package vkode.toita.gui.backend
 
 import akka.actor.ActorRef
 import akka.actor.Actors._
+import vkode.toita.events.{TwitterEvent, UserRef}
 
 object RemoteTrackers {
   
@@ -9,8 +10,8 @@ object RemoteTrackers {
   
   private val casting = remote.actorFor("casting", "localhost", 4020)
   
-  def update(name: String, tracker: Option[ActorRef]) = tracker match {
-    case Some(tracker) => localModule.register(name, tracker)
-    case None => localModule unregister name
+  def update(userRef: UserRef, eventTypes: List[Class[_ <: TwitterEvent]], tracker: Option[ActorRef]) = tracker match {
+    case Some(tracker) => localModule.register(userRef.screenName, tracker)
+    case None => localModule unregister userRef.screenName
   }
 }

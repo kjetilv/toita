@@ -9,11 +9,6 @@
         <additionalJARContents />
       </configuration>
     </facet>
-    <facet type="osgiBundleFacetType" name="OSGi Bundle">
-      <configuration>
-        <properties />
-      </configuration>
-    </facet>
     <facet type="scala" name="Scala">
       <configuration>
         <option name="compilerLibraryLevel" value="Project" />

@@ -1,4 +1,4 @@
-package vkode.toita.gui.backend
+package vkode.toita.toita
 
 import java.io.InputStream
 import akka.util.Logging

@@ -1,4 +1,4 @@
-package vkode.toita.gui.backend
+package vkode.toita.toita
 
 import akka.actor.ActorRef
 import java.io.IOException
@@ -21,32 +21,40 @@ object StreamEmitter {
 class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]*)
     extends Logging with TwitterService {
 
-  def userName = userSession.user getOrElse ""
+  override val userName = userSession.user getOrElse ""
 
-  def user = events (twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
+  override def user = events (twitterSession.latestUserTimeline) filter (_.isInstanceOf[TwitterStatusUpdate]) match {
     case (tweet: TwitterStatusUpdate) :: _ => Some(tweet.user)
     case _ => None
   }
 
-  def homeTimeline = message(twitterSession.homeTimeline)
+  override def homeTimeline() {
+    message(twitterSession.homeTimeline)
+  }
 
-  def users(ids: List[BigInt]) = ids.sliding(25, 25) foreach (window => { 
-    message(twitterSession getFriends window) 
-  })
+  override def users(ids: List[BigInt]) {
+    ids.sliding(25, 25) foreach (window => {
+      message(twitterSession getFriends window)
+    })
+  }
 
-  def status(id: BigInt) = message(twitterSession lookup id)
+  override def status(id: BigInt) {
+    message(twitterSession lookup id)
+  }
 
   def addReceiver(ref: ActorRef, types: List[Class[_ <: TwitterEvent]]) {
     receivers = (receivers /: types) ((m, t) => {
       val set = m getOrElse (t, Set())
-      m + (t -> (set + ref))
+      m + (t → (set + ref))
     })
     if (shouldStartStream) {
-      startStream
+      startStream()
     }
   }
 
-  def close = twitterStream.close
+  def close() {
+    twitterStream.close
+  }
 
   private val twitterSession= new TwitterSession(userSession)
 
@@ -61,7 +69,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
   private def shouldStartStream =
     !streamStarted.get && requiredClasses.subsetOf(receivers.keySet) && streamStarted.compareAndSet(false, true)
 
-  private def feedFromStream {
+  private def feedFromStream() {
     message (twitterSession.homeTimeline)
     try {
       for (line <- twitterStream) message (line)
@@ -73,14 +81,19 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
     }
   }
 
-  private def startStream =
+  private def startStream() {
     new Thread(new Runnable {
-      def run = feedFromStream
-    }, "Emitter for " + twitterSession).start
+      def run() {
+        feedFromStream()
+      }
+    }, "Emitter for " + twitterSession).start()
+  }
 
-  private def message (line: String) = events(line) groupBy (_.getClass) foreach (_ match {
-    case (eventType, events) => ship(eventType asSubclass classOf[TwitterEvent], events)
-  })
+  private def message (line: String) {
+    events(line) groupBy (_.getClass) foreach (_ match {
+      case (eventType, events) => ship(eventType asSubclass classOf[TwitterEvent], events)
+    })
+  }
 
   private def ship(eventType: Class[_ <: TwitterEvent], events: List[TwitterEvent]) {
     receivers get (eventType) match {
@@ -104,7 +117,8 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
       case None => Nil
     }
 
-  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] = List(TwitterFriend(tsu.user, userSession.user.get, json))
+  private def user(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] = 
+    List(TwitterFriend(tsu.user, userSession.user.get, json))
 
   private def retweetedUser(tsu: TwitterStatusUpdate, json: JValue): List[TwitterFriend] =
     tsu.retweeted map (tsu => user(tsu, json)) getOrElse Nil
@@ -122,7 +136,7 @@ class StreamEmitter(userSession: UserSession, required: Class[_ <: TwitterEvent]
     }
   }
 
-  def bothEvents[T <: TwitterEvent](event: TwitterEvent, json: JValue): List[TwitterEvent] = {
+  private def bothEvents[T <: TwitterEvent](event: TwitterEvent, json: JValue): List[TwitterEvent] = {
     val tsu = event.asInstanceOf[TwitterStatusUpdate]
     user(tsu, json) ++ retweetedUser(tsu, json)
   }

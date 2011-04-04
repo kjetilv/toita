@@ -1,4 +1,4 @@
-package vkode.toita.gui.backend
+package vkode.toita.toita
 
 import org.scribe.builder.ServiceBuilder
 import org.scribe.builder.api.TwitterApi
@@ -13,7 +13,6 @@ import io.{Codec, Source}
 import scalaz.Options
 import org.scribe.model._
 import vkode.toita.events.UserSession
-import vkode.toita.waka.Api
 
 object TwitterSession {
 
@@ -21,7 +20,7 @@ object TwitterSession {
 
   private val sec = System getProperty "secret"
 
-  private val service = Api.key match {
+  private val service = DB.apiKey match {
     case (key, sec) => 
       new ServiceBuilder provider classOf[TwitterApi] apiKey key apiSecret sec callback "oob" build
     case x => 

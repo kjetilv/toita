@@ -1,4 +1,4 @@
-package vkode.toita.gui.backend
+package vkode.toita.toita
 
 import net.liftweb.json.JsonAST.{JValue, JField, JArray, JNothing}
 import reflect.Manifest
@@ -82,7 +82,7 @@ object JsonTransformer extends Logging {
   }
 
   private lazy val transformers: Map[String, (String, JValue) => Option[TwitterEvent]] =
-    Map("text" → ((au: String, json: JValue) => { parseStatus(au, json) }),
+    Map("text" -> ((au: String, json: JValue) => { parseStatus(au, json) }),
         "delete" -> ((au: String, json: JValue) => (json \ "delete" \ "status").extractOpt[TOStatusRef] map (TwitterStatusDelete (_, au, json))),
         "friends" -> ((au: String, json: JValue) => json.extractOpt[TOFriends] map (TwitterFriends (_, au, json))),
         "screen_name" -> ((au: String, json: JValue) => json.extractOpt[TOUser] map (TwitterFriend (_, au, json))),

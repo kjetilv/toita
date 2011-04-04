@@ -241,7 +241,7 @@
     <modules>
         <module>vkode.toita.gui</module>
         <module>vkode.toita.waka</module>
-        <!--<module>vkode.toita.toita</module>-->
+        <module>vkode.toita.toita</module>
         <module>vkode.toita.events</module>
     </modules>
     

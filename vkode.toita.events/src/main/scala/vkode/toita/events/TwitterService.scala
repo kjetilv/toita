@@ -1,14 +1,27 @@
 package vkode.toita.events
 
+object TwitterService {
+  
+  case object HomeTimeline
+  
+  case class Users(ids: List[BigInt])
+  
+  case class Status(id: BigInt)
+  
+  case class User
+  
+  case class UserName
+}
+
 trait TwitterService {
 
-  def homeTimeline: Unit
+  val userName: String
 
-  def users (ids: List[BigInt]): Unit
+  def homeTimeline()
 
-  def status (id: BigInt): Unit
+  def users (ids: List[BigInt])
+
+  def status (id: BigInt)
 
   def user: Option[TOUser]
-  
-  def userName: String
 }
